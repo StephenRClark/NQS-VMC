@@ -11,24 +11,18 @@ Neural-network Quantum States (NQS) are a powerful ansatz for many-body quantum 
   1. to provide code for performing cutting-edge VMC calculations with NQS,
   2. to be as simple and easier to use as possible to enhance fundamental and pedagogical understanding of NQS.
 
-We have chosen object-orientated MATLAB code to achieve this aims. 
+We have chosen object-orientated MATLAB code to achieve these aims. 
 
 Running the code
 --------------------
 
 Running NQS-VMC requires MATLAB. Download the code from this repository. Edit the file `set_NQS_path.m` by defining the directory where the NQS-VMC is located. Run this script to add this directory and all subdirectories to the MATLAB path.
 
-Start from the files examples/*.m.
+Start from the files `examples/*.m` where scripts are provided for doing NQS VMC calculations on the Bose and Fermi Hubbard model.
 
-    > cd lib
-    > mkdir build
-    > cd build
-    > CXX=icpc CC=icc cmake .. -DMKL=ON
-    > make
-    > cd ../..
-
-
-
+Coming soon ...
+--------------------
+PDF documentation for the code and a discussion of simple examples is in preparation.
   
 Key publications
 --------------------
@@ -40,7 +34,7 @@ The following papers are related to this project:
 
 Funding
 --------------------
-This code is a part of the project _"Emerging correlations from strong driving: a tensor network projection variational Monte Carlo approach to 2D quantum lattice systems"_ being undertaken at the **University of Bristol**, UK and funded by the UK's Engineering and Physical Sciences Research Council (EPSRC) grant EP/P025110/1 - see [GOW page](https://gow.epsrc.ukri.org/NGBOViewGrant.aspx?GrantRef=EP/P025110/1).
+This code is a part of the project _"Emerging correlations from strong driving: a tensor network projection variational Monte Carlo approach to 2D quantum lattice systems"_ being undertaken via the PI Dr Stephen Clark at the **University of Bristol**, UK and funded by the UK's Engineering and Physical Sciences Research Council (EPSRC) grant EP/P025110/1 - see [GOW page](https://gow.epsrc.ukri.org/NGBOViewGrant.aspx?GrantRef=EP/P025110/1).
 
 ![Image](./images/epsrc.png "epsrc")
 
