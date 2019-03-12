@@ -6,7 +6,7 @@ Copyright (C) 2019 **Michael Pei** and **Stephen Clark**
 
 ![Image](./images/rbm.png "rbm")
 
-Purpose
+Purpose of code
 --------------------
 Neural-network Quantum States (NQS) are a powerful ansatz for many-body quantum systems inspired by artificial neural networks approaches in machine learning. They were first introduced into the context of variational Monte Carlo (VMC) calculation by the seminal work of Carleo and Troyer _“Solving the quantum many-body problem with artificial neural networks”_ Science **355**, 602 (2017). **NQS-VMC** is a open-source software project with two key aims:
 
