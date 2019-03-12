@@ -2,7 +2,7 @@
 Neural-network Quantum State - Variational Quantum Monte Carlo: a MATLAB implementation
 ===================================================================================================
 
-Copyright (C) 2019 Michael Pei and Stephen Clark
+Copyright (C) 2019 **Michael Pei** and **Stephen Clark**
 
 ![Image](./images/rbm.png "rbm")
 
