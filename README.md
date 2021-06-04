@@ -13,14 +13,15 @@ Neural-network Quantum States (NQS) are a powerful ansatz for many-body quantum 
   1. to provide code for performing cutting-edge VMC calculations with NQS,
   2. to be as simple and easier to use as possible to enhance fundamental and pedagogical understanding of NQS.
 
-We have chosen object-orientated MATLAB code to achieve these aims. 
+We have chosen object-orientated MATLAB code to achieve these aims, and we are also developing a C++ version for high performance calculations.
+N.B. C++ version does not have complete parity with MATLAB version - some Operators, References and Modifiers do not yet have C++ counterparts.
 
 Running the code
 --------------------
 
 Running NQS-VMC requires MATLAB. Download the code from this repository. Edit the file `set_NQS_path.m` by defining the directory where the NQS-VMC is located. Run this script to add this directory and all subdirectories to the MATLAB path.
 
-Start from the files `examples/*.m` where scripts are provided for doing NQS VMC calculations on the Bose and Fermi Hubbard model.
+Start from the files `examples/*.m` where scripts are provided for doing NQS VMC calculations on the spin-1/2 XXZ, Bose and Fermi Hubbard models.
 
 Coming soon ...
 --------------------
