@@ -30,6 +30,8 @@ Key publications
 --------------------
 The following papers are related to this project:
 
+  * Michael Y. Pei and Stephen R. Clark, _"Neural-network Quantum States for Spin-1 systems: spin-basis and parameterization effects on compactness of representations"_, available currently as an [arXiv preprint](https://arxiv.org/abs/arXiv:2105.08579).
+  * Michael Y. Pei and Stephen R. Clark, _"Compact Neural-network Quantum State representations of Jastrow and Stabilizer states"_, available currently as an [arXiv preprint](https://arxiv.org/abs/2103.09146).
   * Stephen R. Clark, _"Unifying Neural-network Quantum States and Correlator Product States via Tensor Networks"_,  J. Phys. A: Math. Theor. **51** 135301 (2018), see also [arXiv preprint](https://arxiv.org/abs/1710.03545).
   * Sarah Al-Assam, Stephen R. Clark, Dieter Jaksch, _"The Tensor Network Theory Library"_, J. Stat. Mech. 093102 (2017), see also [arXiv preprint](https://arxiv.org/abs/1610.02244).
   * Sarah Al-Assam, Stephen R. Clark, Chris J. Foot, Dieter Jaksch, _"Capturing long range correlations in two-dimensional quantum lattice systems using correlator product states"_, Phys. Rev. B **84**, 205108 (2011), see also [arXiv preprint](https://arxiv.org/abs/1107.0936).
