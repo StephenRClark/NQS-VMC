@@ -6,7 +6,10 @@ function [Diff, OpMatEls] = SpSm_OpMatEls(HilbertObj,Cfg,GraphObj)
 % <Cfg|S+{i}*S-{j}|CfgP>. Only the limited number of "reachable"
 % configurations, where the matrix element is non-zero, are returned.
 
-[Cfg_vec] = HilbertObj.FullCfgRef(Cfg); % Build the configuration vector for Cfg for convenience below.
+% As operator acts to left, the conjugate is applied to the supplied
+% configuration.
+
+[Cfg_vec] = HilbertObj.FullCfg(Cfg); % Build the configuration vector for Cfg for convenience below.
 N = Cfg.N; % Number of sites in the system.
 Bonds = GraphObj.Bonds;
 Nbond = numel(Bonds); % Count the number of bonds provided.
@@ -31,21 +34,21 @@ for c = 1:CoOrd
     for n = 1:N
         m = Bonds(n,c);
         if m == n
-            % No differences produced, and value is 1 if spin is in up
+            % No differences produced, and value is 1 if spin is in down
             % state - only need one Diff and OpMatEls element.
             Diff(1+(c-1)*N).num = 0;
             Diff(1+(c-1)*N).pos = 1;
             Diff(1+(c-1)*N).val = 0;
-            OpMatEls(1+(c-1)*N) = (1/2)*sum(Cfg_vec==1);
+            OpMatEls(1+(c-1)*N) = (1/2)*sum(Cfg_vec==-1);
             break
         else
             if m ~= 0
                 Diff(n+(c-1)*N).num = 2;
                 Diff(n+(c-1)*N).pos(1) = n;
-                Diff(n+(c-1)*N).val(1) = 2; % Raise spin at first site.
+                Diff(n+(c-1)*N).val(1) = -2; % Lower spin at first site.
                 Diff(n+(c-1)*N).pos(2) = m;
-                Diff(n+(c-1)*N).val(2) = -2; % Lower spin at bonded site.
-                OpMatEls(n+(c-1)*N) = (1/2) * (Cfg_vec(n) < 0) * (Cfg_vec(m) > 0);
+                Diff(n+(c-1)*N).val(2) = 2; % Raise spin at bonded site.
+                OpMatEls(n+(c-1)*N) = (1/2) * (Cfg_vec(n) > 0) * (Cfg_vec(m) < 0);
             end
         end
     end

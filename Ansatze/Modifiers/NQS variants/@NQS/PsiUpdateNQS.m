@@ -23,6 +23,8 @@ function NQSObj = PsiUpdateNQS(NQSObj,dP)
 Nv = NQSObj.Nv; % Number of "visible" spins.
 Nh = NQSObj.Nh; % Number of "hidden" spins.
 
+dP = dP.*NQSObj.OptInds; % Zeroes out any undesired parameter changes.
+
 % Unpack the changes in parameters of the NQS:
 da = dP(1:Nv);
 db = dP((Nv+1):(Nv+Nh));
@@ -40,13 +42,21 @@ NQSObj.a(isinf(NQSObj.a)) = 0;
 NQSObj.a(isnan(NQSObj.a)) = 0;
 ind = abs(real(NQSObj.a))>cap;
 NQSObj.a(ind) = sign(real(NQSObj.a(ind)))*cap + 1i*imag(NQSObj.a(ind));
+ind = abs(imag(NQSObj.a))>pi;
+NQSObj.a(ind) = real(NQSObj.a(ind)) + 1i*(mod(imag(NQSObj.a(ind))+pi,2*pi)-pi);
 
 NQSObj.b(isinf(NQSObj.b)) = 0;
 NQSObj.b(isnan(NQSObj.b)) = 0;
 ind = abs(real(NQSObj.b))>cap;
 NQSObj.b(ind) = sign(real(NQSObj.b(ind)))*cap + 1i*imag(NQSObj.b(ind));
+ind = abs(imag(NQSObj.b))>pi;
+NQSObj.b(ind) = real(NQSObj.b(ind)) + 1i*(mod(imag(NQSObj.b(ind))+pi,2*pi)-pi);
 
 NQSObj.W(isinf(NQSObj.W)) = 0;
 NQSObj.W(isnan(NQSObj.W)) = 0;
 ind = abs(real(NQSObj.W))>cap;
 NQSObj.W(ind) = sign(real(NQSObj.W(ind)))*cap + 1i*imag(NQSObj.W(ind));
+ind = abs(imag(NQSObj.W))>pi;
+NQSObj.W(ind) = real(NQSObj.W(ind)) + 1i*(mod(imag(NQSObj.W(ind))+pi,2*pi)-pi);
+
+end

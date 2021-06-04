@@ -29,7 +29,7 @@ classdef NQSNH < NQS
     % - (Nh*Nv x 1) for d/dW.
     % ---------------------------------
     
-    properties % Default to one visible, one hidden plus state with no input.
+    properties (SetAccess = protected) % Default to one visible, one hidden plus state with no input.
         A = 0; % Visible site square bias.
         B = 0; % Hidden site square bias.
         HDim = 2; % Hidden unit dimensionality, set to match Hilbert.
@@ -40,40 +40,96 @@ classdef NQSNH < NQS
     end
     
     methods
-        
-        % Constructor for 1D translation invariant NQS:
+        % Constructor for general number hidden NQS:
         function obj = NQSNH(Hilbert,Graph,Params,VFlag)
             obj@NQS(Hilbert,Graph,Params,VFlag);
             obj.HDim = Hilbert.d; % Set NQS hidden dimension to match visible.
             obj = RandomInitPsiNQSNH(obj,Params);
         end
         
-        % Update Modifier variational parameters according to changes dP.
-        function obj = PsiUpdate(obj,Graph,dP)
-            obj = PsiUpdateNQSNH(obj,Graph,dP);
+        % PsiUpdate: Update Modifier variational parameters according to
+        % changes dP.
+        function obj = PsiUpdate(obj,dP)
+            obj = PsiUpdateNQSNH(obj,dP);
         end
         
-        % Update Modifier configuration information inside Update.
+        % PsiCfgUpdate: Update Modifier configuration information inside
+        % Update.
         function obj = PsiCfgUpdate(obj,Update)
-            obj = PsiCfgUpdateNQSNH(obj,Update);
+            obj.Theta = Update.Theta; obj.NsqVec = Update.NsqVec;
         end
         
-        % Initialise Modifier configuration information given a starting Cfg.
-        function obj = PrepPsi(obj,Hilbert,Cfg)
-            obj = PrepPsiNQSNH(obj,Hilbert,Cfg);
+        % PrepPsi: Initialise Modifier configuration information given a
+        % starting Cfg.
+        function obj = PrepPsi(obj,Cfg)
+            obj = PrepPsiNQSNH(obj,Cfg);
         end
         
-    end
-    
-    methods (Static)
-        % Ratio of amplitudes for two configurations separated by Diff.
+        % PsiGenerate: Generate full normalised NQS amplitudes for a given
+        % set of basis states.
+        function [Psi] = PsiGenerate(obj,Basis)
+            Psi = PsiGenerateNQSNH(obj,Basis);
+        end
+        
+        % AddHidden: Generate additional hidden units and associated
+        % parameters.
+        function [obj] = AddHidden(obj,Params)
+            obj = AddHiddenNQSNH(obj,Params);
+        end
+        
+        % PsiRatio: Ratio of amplitudes for two configurations separated by
+        % Diff.
         function [Ratio,Update] = PsiRatio(obj,Diff)
-            [Ratio,Update] = PsiRatioNQSNH(obj,Diff);
+            Ratio = exp(sum(Diff.val.'.*obj.a(Diff.pos))); % Initialise the ratio with the a-vector contribution.
+            Theta_shift = zeros(obj.Nh,1); % Initialise effective angle shift.
+            Nsq_shift = zeros(obj.Nv,1);
+            % Only loop over the sites where there are differences:
+            for i=1:Diff.num
+                Theta_shift = Theta_shift + Diff.val(i)*obj.W(:,Diff.pos(i));
+                Nsq_shift(Diff.pos(i)) = 2*sqrt(obj.NsqVec(Diff.pos(i)))*Diff.val(i) + (Diff.val(i)^2);
+            end
+            NsqP = obj.NsqVec + Nsq_shift;% Update the squared occupancy vector for the proposed configuration.
+            Ratio = Ratio * exp(sum(Nsq_shift(Diff.pos).*obj.A(Diff.pos))); % Compute visible square bias contribution.
+            ThetaP = obj.Theta + Theta_shift; % Update the effective angle for the proposed configuration.
+            Ratio = Ratio * prod(NHTrace(ThetaP,obj.B,obj.HDim) ./ ...
+                NHTrace(obj.Theta,obj.B,obj.HDim)); % Compute full ratio.
+            % Collect new configuration information into Update.
+            Update.Theta = ThetaP; Update.NsqVec = NsqP;
         end
         
-        % Logarithmic derivative for the variational parameters in Modifier.
-        function [dLogp] = LogDeriv(obj,Hilbert,Graph,Cfg)
-            [dLogp] = LogDerivNQSNH(obj,Hilbert,Graph,Cfg);
+        % LogDeriv: Logarithmic derivative for the variational parameters
+        % in Modifier.
+        function [dLogp] = LogDeriv(obj,Cfg)
+            Cfg_vec = obj.FullCfg(Cfg); % Build the spin configuration vector.            
+            dLogp = zeros(obj.Np,1); % Initialise full vector of derivatives.            
+            dLogp(1:obj.Nv) = Cfg_vec; % Insert d/da.
+            dLogp((1:obj.Nv)+obj.Nv) = Cfg_vec.^2; % Insert d/dA.
+            dLogp((1:(obj.Nv*obj.Nh))+2*(obj.Nv+obj.Nh)) = ...
+                reshape((dTSBTrace(obj.Theta,obj.HDim,obj.B)*Cfg_vec.'),obj.Nh*obj.Nv,1); % Insert d/dW.
+            dLogp((1:obj.Nh)+2*obj.Nv) = dTSBTrace(obj.Theta,obj.HDim,obj.B); % Insert d/db.
+            dLogp((1:obj.Nh)+2*obj.Nv+obj.Nh) = dBSBTrace(obj.Theta,obj.HDim,obj.B); % Insert d/dB.
+            % Do some forward error prevention for NaN or Inf elements by zeroing them:
+            dLogp(isnan(dLogp)) = 0;
+            dLogp(isinf(dLogp)) = 0;            
+        end
+        
+        % ParamList: outputs a Np x 1 vector of parameters.
+        function [Params] = ParamList(obj)
+            Params = ParamListNQSNH(obj);
+        end
+        
+        % ParamLoad: replaces parameters with the provided ones in vector P.
+        function [obj] = ParamLoad(obj,P)
+            obj = ParamLoadNQSNH(obj,P);
+        end
+        
+        % PropertyList: Output a struct with the relevant properties as 
+        % separate fields. Used for interfacing with C++ code.
+        function [Properties] = PropertyList(obj)
+            Properties.Type = 'NQSNH';
+            Properties.Graph = obj.Graph.PropertyList; Properties.OptInds = obj.OptInds;
+            Properties.Nv = obj.Nv; Properties.Nh = obj.Nh; Properties.HDim = obj.HDim;
+            Properties.Params = obj.ParamList; Properties.ParamCap = obj.ParamCap;
         end
     end
     

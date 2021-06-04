@@ -7,7 +7,10 @@ function [Diff, OpMatEls] = SpmSmp_OpMatEls(HilbertObj,Cfg,GraphObj)
 % "reachable" configurations, where the matrix element is non-zero, are
 % returned.
 
-[Cfg_vec] = HilbertObj.FullCfgRef(Cfg); % Build the configuration vector for Cfg for convenience below.
+% As operator acts to left, the conjugate is applied to the supplied
+% configuration.
+
+[Cfg_vec] = HilbertObj.FullCfg(Cfg); % Build the configuration vector for Cfg for convenience below.
 N = Cfg.N; % Number of sites in the system.
 Bonds = GraphObj.Bonds;
 Nbond = numel(Bonds); % Count the number of bonds provided.

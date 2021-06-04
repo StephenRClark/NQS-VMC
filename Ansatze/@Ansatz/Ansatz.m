@@ -4,181 +4,102 @@ classdef Ansatz
     %   Ansatz is overarching class - subclasses will define specific
     %   functions for the methods listed below.
     
-    properties % (Abstract)
+    properties (SetAccess = protected)
         Reference % Reference state - options listed below:
         % Plus (equal superposition) / BECR (Bose condensate) /
         % SDet (Slater determinant) / Pfaf (Pairing amplitude Pfaffian)
         Modifier % Amplitude modifier - options listed below:
         % None (no amplitude modification) / NQS (RBM architecture) /
         % Jast (Jastrow) / Gutz (Gutzwiller)
-        Graph % Details connectivity of sites.
         Hilbert % Details Hilbert space in which Ansatz is represented.
         Var % Counter for number of variational components in Ansatz.
         NpTotal % Total number of variational parameters in Ansatz.
     end
     
     methods
-        % General constructor for Ansatz class:
-        
-        function obj = Ansatz(Ref,Mod,Hilbert,Graph,Params)
-            % Specific input scheme required:
-            % Ref - 1 x 2 cell with name of reference state as 1st entry,
-            % then flag with 0 for fixed or 1 for variational as 2nd.
-            % Mod - N_mod x 2 cell with similar convention.
-            % Hilbert - generate a Hilbert object which the Ansatz draws
-            % configuration information from.
-            % Graph - details connectivity of the lattice on which the
-            % model is applied.
-            % Params - struct containing necessary information to
-            % initialise references and modifiers.
-            
-            % Initialise Reference object according to input.
-            if strcmp(Ref{1},'Plus')
-                obj.Reference = Plus;
-                if Ref{2} == 1
-                    disp(['Equal superposition of all states requested as reference state.'
-                        ' Variational flag ignored as reference cannot be made variational.'])
-                end
-            elseif strcmp(Ref{1},'BECR')
-                if Ref{2} == 1
-                    disp('Variational bosonic references are not currently supported.')
-                end
-                if strcmp(Hilbert.Type,'Bose')
-                    obj.Reference = BECR(Hilbert,Params);
-                else
-                    error('Bosonic reference requested for a non-bosonic Hilbert space.')
-                end
-            elseif strcmp(Ref{1},'SDet') || strcmp(Ref{1},'Pfaf')
-                if strcmp(Hilbert.Type,'Bose')
-                    error(['Fermionic reference requested for a bosonic Hilbert space. '
-                        ' Advise using the "Bose" reference state instead.']);
-                elseif strcmp(Hilbert.Type,'Spin')
-                    disp(['Fermionic reference requested for a spin Hilbert space. '
-                        'Ensure that "Hilbert" object is populated properly with N fermions.']);
-                end
-                if strcmp(Ref{1},'SDet')
-                    obj.Reference = SDet(Hilbert,Params,Ref{2});
-                elseif strcmp(Ref{1},'Pfaf')
-                    % Pfaf can be initialised to respect symmetries in
-                    % Graph, so will pass along to Pfaf.
-                    obj.Reference = Pfaf(Hilbert,Graph,Params,Ref{2});
-                end
-            else
-                error(['Requested reference does not match any available state. '
-                    'Valid references are "Plus","Bose","SDet","Pfaf".'])
+        % General constructor for Ansatz class:        
+        function obj = Ansatz(Ref,Mods,Hilbert)
+            % To be cleaned up and replaced later - next version will
+            % initialise with pre-made Reference and Modifiers.
+            obj.Hilbert = Hilbert; % Common Hilbert space for Ref and Mod to use.
+            if numel(Ref) > 1
+                error('Only one Reference may be used per Ansatz.')
             end
-            if Ref{2} == 1
-                NpTotal = Reference.Np;
-            else
-                NpTotal = 0;
-            end
-            
-            % Initialise Modifier objects in order.
-            Modifier = cell(size(Mod,1),1); Var = Ref{2};
-            for m = 1:size(Mod,1)
-                % NQS Modifiers and subtypes.
-                if strcmp(Mod{m,1},'NQS')
-                    Modifier{m} = NQS(Hilbert,Graph,Params,Mod{m,2});
-                elseif strcmp(Mod{m,1},'NQSNH')
-                    % Number-like hidden units - only used for bosonic
-                    % systems.
-                    if strcmp(Hilbert.Type,'Bose')
-                        Modifier{m} = NQSNH(Hilbert,Graph,Params,Mod{m,2});
-                    else
-                        Modifier{m} = NQS(Hilbert,Graph,Params,Mod{m,2});
-                    end
-                elseif strcmp(Mod{m,1},'NQSTI')
-                    % Translation invariant NQS - translations specified in
-                    % Graph.
-                    Modifier{m} = NQSTI(Hilbert,Graph,Params,Mod{m,2});
-                elseif strcmp(Mod{m,1},'NQSTIRI')
-                    % Rotation invariance - only applied for 2D currently.
-                    if numel(Graph.Dim) ~= 2 || strcmp(Graph.Type,'HypCub') == 0
-                        error('Rotation invariance not currently supported for this Graph type.')
-                    else
-                        % Function that adds rotated versions of already
-                        % present Bonds.
-                        [Graph] = RotateBonds(Graph);
-                        Modifier{m} = NQSTI(Hilbert,Graph,Params,Mod{m,2});
-                    end
-                elseif strcmp(Mod{m,1},'NQSNHTI')
-                    % Translation invariance with spin symmetry and
-                    % number-like hidden units.
-                    if strcmp(Hilbert.Type,'Bose')
-                        Modifier{m} = NQSNHTI(Hilbert,Graph,Params,Mod{m,2});
-                    else
-                        Modifier{m} = NQSTI(Hilbert,Graph,Params,Mod{m,2});
-                    end
-                elseif strcmp(Mod{m,1},'NQSTISS')
-                    % Translation invariance with spin symmetry
-                    if strcmp(Hilbert.Type,'Ferm') && (Hilbert.Sector(1) == Hilbert.Sector(2))
-                        Modifier{m} = NQSTISS(Hilbert,Graph,Params,Mod{m,2});
-                    else
-                        Modifier{m} = NQSTI(Hilbert,Graph,Params,Mod{m,2});
-                    end
-                elseif strcmp(Mod{m,1},'NQSTIDDJ')
-                    % Translation invariance with density-density like
-                    % coupling terms.
-                    if strcmp(Hilbert.Type,'Ferm') && (Hilbert.Sector(1) == Hilbert.Sector(2))
-                        Modifier{m} = NQSTIDDJ(Hilbert,Graph,Params,Mod{m,2});
-                    else
-                        Modifier{m} = NQSTI(Hilbert,Graph,Params,Mod{m,2});
-                    end
-                    % Jastrow Modifiers and subtypes.
-                elseif strcmp(Mod{m,1},'Jast')
-                    Modifier{m} = Jast(Hilbert,Graph,Params,Mod{m,2});
-                elseif strcmp(Mod{m,1},'JastTI')
-                    % Translation invariant Jastrow factors - requires
-                    % Graph.
-                    Modifier{m} = JastTI(Hilbert,Graph,Params,Mod{m,2});
-                elseif strcmp(Mod{m,1},'Gutz')
-                    if strcmp(Hilbert.Type,'Ferm') == 0
-                        error('Gutzwiller Modifier is only implemented for fermionic systems.')
-                    else
-                        Modifier{m} = Gutz(Hilbert,Params,Mod{m,2});
-                    end
-                elseif strcmp(Mod{m,1},'None')
-                    Modifier{m} = None;
-                end
-                Var = Var + Mod{m,2};
-                if Mod{m,2} == 1
-                    NpTotal = NpTotal + Modifier{m}.Np;
+            HType = Hilbert.Type; RType = Ref.Type; % Use to gauge compatibility.
+            if strcmp(RType,'Plus') == 0
+                if strcmp(RType,HType) == 0
+                    error('Chosen Reference and Hilbert are incompatible.')
                 end
             end
-            obj.Var = Var; obj.NpTotal = NpTotal; obj.Modifier = Modifier;            
-            obj.Graph = Graph; obj.Hilbert = Hilbert;
+            obj.Reference = Ref; obj.Modifier = Mods;
+            % Modifiers should be initialised with same Hilbert as input to
+            % avoid issues arising - responsibility for this falls on the
+            % user, though.
+            Var = Ref.VFlag; NpTotal = Ref.Np * Ref.VFlag;
+            for m = 1:numel(Mods)
+                Var = Var + Mods{m}.VFlag;
+                NpTotal = NpTotal + (Mods{m}.VFlag*Mods{m}.Np);
+            end
+            obj.Var = Var; obj.NpTotal = NpTotal;
         end
     end
     
     methods
-        % Update Ansatz variational parameters according to changes dP.
+        % PsiUpdate: Update Ansatz variational parameters according to
+        % changes dP. Wrapper function that incorporates Reference and
+        % Modifier versions of this function.
         function [obj] = PsiUpdate(obj,dP)
             % Assume dP is a single column vector containing all the
             % parameters for each section.
             if obj.Reference.VFlag == 1
                 P = obj.Reference.Np; % Number of entries in dP relevant to Reference.
-                [obj.Reference] = obj.Reference.PsiUpdate( obj.Graph, dP(1:P) );
+                [obj.Reference] = obj.Reference.PsiUpdate(dP(1:P));
             else
                 P = 0;
             end
             for m = 1:numel(obj.Modifier)
                 if obj.Modifier{m}.VFlag == 1
                     p = obj.Modifier{m}.Np; % Number of entries in dP relative to this Modifier.
-                    [obj.Modifier{m}] = obj.Modifier{m}.PsiUpdate( obj.Graph, dP((1:p)+P) );
+                    [obj.Modifier{m}] = obj.Modifier{m}.PsiUpdate(dP((1:p)+P));
                     P = P + p;
                 end
             end
         end
         
-        % Initialise Ansatz configuration values given a starting Cfg.
-        function [obj] = PrepPsi(obj,Cfg)
-            [obj.Reference] = PrepPsi(obj.Reference,obj.Hilbert,Cfg);
+        % PsiUpdate: Update Ansatz variational parameters according to
+        % changes dP. Wrapper function that incorporates Reference and
+        % Modifier versions of this function.
+        function [obj] = ParamLoad(obj,dP)
+            % Assume dP is a single column vector containing all the
+            % parameters for each section.
+            if obj.Reference.VFlag == 1
+                P = obj.Reference.Np; % Number of entries in dP relevant to Reference.
+                [obj.Reference] = obj.Reference.ParamLoad(dP(1:P));
+            else
+                P = 0;
+            end
             for m = 1:numel(obj.Modifier)
-                [obj.Modifier{m}] = PrepPsi(obj.Modifier{m},obj.Hilbert,Cfg);
+                if obj.Modifier{m}.VFlag == 1
+                    p = obj.Modifier{m}.Np; % Number of entries in dP relative to this Modifier.
+                    [obj.Modifier{m}] = obj.Modifier{m}.ParamLoad(dP((1:p)+P));
+                    P = P + p;
+                end
             end
         end
         
-        % Update Ansatz configuration values according to Update.
+        % PrepPsi: Initialise Ansatz configuration values given a starting
+        % Cfg. Wrapper function that incorporates Reference and Modifier
+        % versions of this function.
+        function [obj] = PrepPsi(obj,Cfg)
+            [obj.Reference] = PrepPsi(obj.Reference,Cfg);
+            for m = 1:numel(obj.Modifier)
+                [obj.Modifier{m}] = PrepPsi(obj.Modifier{m},Cfg);
+            end
+        end
+        
+        % PsiCfgUpdate: update Ansatz configuration values according to
+        % Update. Wrapper function that incorporates Reference and Modifier
+        % versions of this function.
         function [obj] = PsiCfgUpdate(obj,Update)
             % Isolate update to reference state values.
             UpdateRf = Update{1}; [obj.Reference] = PsiCfgUpdate(obj.Reference,UpdateRf);
@@ -188,7 +109,7 @@ classdef Ansatz
             end
         end
         
-        % Activate / deactivate variational flag for Reference.
+        % VarFlagRef: Activate / deactivate variational flag for Reference.
         function [obj] = VarFlagRef(obj,Flag)
             if Flag ~= 0 && Flag ~= 1
                 error('Flag value should be 0 or 1 to deactivate / activate variational flag respectively.')
@@ -213,7 +134,8 @@ classdef Ansatz
             end
         end
         
-        % Activate / deactivate variational flag for Modifier specified by Mnum.
+        % VarFlagMod: Activate / deactivate variational flag for Modifier
+        % specified by Mnum.
         function [obj] = VarFlagMod(obj,Mnum,Flag)
             if Flag ~= 0 && Flag ~= 1
                 error('Flag value should be 0 or 1 to deactivate / activate variational flag respectively.')
@@ -229,15 +151,15 @@ classdef Ansatz
             NpTotal0 = obj.NpTotal - (PFlag * obj.Modifier{Mnum}.Np);
             obj.NpTotal = NpTotal0 + (Flag * obj.Modifier{Mnum}.Np);
             if Flag == 0
-                disp('Variational optimisation of modifier has been disabled.')
+                disp(['Variational optimisation of Modifier ' num2str(Mnum) ' has been disabled.'])
             elseif Flag == 1
-                disp('Variational optimisation of modifier has been enabled.')
+                disp(['Variational optimisation of Modifier ' num2str(Mnum) ' has been enabled.'])
             end
             
         end
         
-        % Exchange the existing Reference of an Ansatz object with a new
-        % pre-prepared Reference.
+        % RefReplace: Exchange the existing Reference of an Ansatz object
+        % with a new pre-prepared Reference.
         function obj = RefReplace(obj,NewRef)
             % Log the number of variational components and parameters when
             % old Reference is removed.
@@ -264,8 +186,8 @@ classdef Ansatz
             obj.Var = Var0 + NewRef.VFlag; obj.NpTotal = Np0 + NewRef.VFlag * NewRef.Np;
         end
         
-        % Exchange an existing Modifier of an Ansatz object with a new
-        % pre-prepared Modifier.
+        % ModReplace: Exchange an existing Modifier of an Ansatz object
+        % with a new pre-prepared Modifier.
         function obj = ModReplace(obj,NewMod,Nmod)
             % Nmod signifies which Modifier is to be replaced. If Nmod >
             % actual number of Modifiers, this will just append NewMod to
@@ -282,8 +204,8 @@ classdef Ansatz
             obj.Var = Var0 + NewMod.VFlag; obj.NpTotal = Np0 + NewMod.Np;
         end
         
-        % Remove an existing Modifier of an Ansatz object, with removed
-        % Modifier as second output.
+        % ModRemove: Remove an existing Modifier of an Ansatz object, with
+        % removed Modifier as second output.
         function [obj,OldMod] = ModRemove(obj,Nmod)
             % Nmod signifies which Modifier is to be replaced. If Nmod >
             % actual number of Modifiers, this will just append NewMod to
@@ -302,44 +224,96 @@ classdef Ansatz
             end
         end
         
-    end
-    
-    methods (Static)
+        % RndBatchSelect: alter OptInds of each component for random batch
+        % optimisation.
+        function [obj] = RndBatchSelect(obj,OFrac)
+            if obj.Reference.VFlag == 1 % Only alter if Reference is being flagged for optimisation.
+                obj.Reference = obj.Reference.RndBatchSelect(OFrac);
+            end
+            for m = 1:numel(obj.Modifier)
+                if obj.Modifier{m}.VFlag == 1
+                    obj.Modifier{m} = obj.Modifier{m}.RndBatchSelect(OFrac);
+                end
+            end
+        end
         
-        % Ratio between two configurations differing by Diff.
+        % ParamList; outputs an NpTotal x 1 vector of parameter values from
+        % all actively optimisable constituents.
+        function [Params] = ParamList(obj)
+            Params = cell(obj.Var,1);
+            p = 0;
+            if obj.Reference.VFlag == 1
+                p = p+1;
+                Params{p} = obj.Reference.ParamList;
+            end
+            for m = 1:numel(obj.Modifier)
+                if obj.Modifier{m}.VFlag == 1
+                    p = p + 1;
+                    Params{p} = obj.Modifier{m}.ParamList;
+                end
+            end
+            Params = cell2mat(Params); 
+            % Ensure all other ParamList functions list as Np x 1 or this will go horribly wrong.
+        end
+        
+        % HilbertReplace: Replace Hilbert with new one. New Hilbert must
+        % have the same Type, number of sites N and dimension d to avoid
+        % compatibility issues.
+        function [obj] = HilbertReplace(obj,NewHilbert)
+            OldHilbert = obj.Hilbert;
+            if (OldHilbert.N ~= NewHilbert.N)
+                error('Hilbert spaces have differing number of sites N.');
+            elseif strcmp(OldHilbert.Type,NewHilbert.Type) ==0
+                error('Hilbert spaces describe different system types.');
+            elseif (OldHilbert.d ~= NewHilbert.d)
+                error('Hilbert spaces have different on-site dimension.');
+            else
+                obj.Hilbert = NewHilbert;
+            end
+        end
+ 
+        % PsiRatio: Ratio between two configurations differing by Diff.
         function [Ratio,Update] = PsiRatio(obj,Diff)
             % Ratio from reference state:
             Update = cell(numel(obj.Modifier)+1,1);
-            [RatioRf,Update{1}] = obj.Reference.PsiRatio(obj.Reference,Diff);
-            RatioMd = zeros(numel(obj.Modifier),1);
+            [Ratio,Update{1}] = obj.Reference.PsiRatio(Diff);
             % Ratios from chosen Modifiers:
             for m = 1:numel(obj.Modifier)
-                [RatioMd(m), Update{m+1}] = obj.Modifier{m}.PsiRatio(obj.Modifier{m},Diff);
+                [RatioMd, Update{m+1}] = obj.Modifier{m}.PsiRatio(Diff);
+                Ratio = Ratio * RatioMd;
             end
-            % Combine ratios as one value and updates as a cell.
-            Ratio = RatioRf * prod(RatioMd);
         end
         
-        % Logarithmic derivative for the variational parameters in Ansatz.
+        % LogDeriv: Logarithmic derivative for the variational parameters in Ansatz.
         function [dLogp] = LogDeriv(obj,Cfg)
             dLogp = cell(obj.Var,1);
             if obj.Reference.VFlag == 1
                 p = 1;
-                dLogp{p} = obj.Reference.LogDeriv(obj.Reference,obj.Hilbert,obj.Graph,Cfg);
+                dLogp{p} = obj.Reference.LogDeriv(Cfg);
             else
                 p = 0;
             end
             for m = 1:numel(obj.Modifier)
                 if obj.Modifier{m}.VFlag == 1
                     p = p + 1;
-                    [dLogpMod] = obj.Modifier{m}.LogDeriv(obj.Modifier{m},obj.Hilbert,obj.Graph,Cfg);
+                    [dLogpMod] = obj.Modifier{m}.LogDeriv(Cfg);
                     dLogp{p} = dLogpMod;
                 end
             end
             dLogp = cell2mat(dLogp);
             % Ensure all subordinate LogDeriv functions output a Np x 1 vector.
-        end
+        end 
         
+        % PropertyList: Output a struct with the relevant properties as 
+        % separate fields. Used for interfacing with C++ code.
+        function [Properties] = PropertyList(obj)
+            Properties.Hilbert = obj.Hilbert.PropertyList;
+            Properties.Reference = obj.Reference.PropertyList;
+            Properties.Modifier = cell(numel(obj.Modifier),1);
+            for o = 1:numel(obj.Modifier)
+                Properties.Modifier{o} = obj.Modifier{o}.PropertyList;
+            end
+        end
     end
     
 end

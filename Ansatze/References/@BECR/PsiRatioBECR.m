@@ -1,6 +1,6 @@
 % --- General bosonic reference wave function amplitude ratio function ---
 
-function [Ratio,OccP] = PsiRatioBECR(BECRObj,Diff)
+function [Ratio,Update] = PsiRatioBECR(BECRObj,Diff)
 % This function computes the ratio Psi(CfgP)/Psi(Cfg) of amplitudes for
 % a proposed bosonic configuration CfgP and the current on Cfg, whose
 % difference is stored in Diff.
@@ -13,9 +13,15 @@ function [Ratio,OccP] = PsiRatioBECR(BECRObj,Diff)
 % Format for Update is a vector containing the new boson occupation numbers.
 % ---------------------------------
 
-OccP = BECRObj.Occ;
+Update.Occ = BECRObj.Occ; Update.Nb = BECRObj.Nb;
 Ratio = prod(BECRObj.SPO(Diff.pos).'.^Diff.val);
 for d = 1:Diff.num
-    Ratio = Ratio * sqrt((OccP(Diff.pos(d))+(Diff.val(d)>0))^(-Diff.val(d)));
-    OccP(Diff.pos(d)) = OccP(Diff.pos(d)) + Diff.val(d);
+    Update.Occ(Diff.pos(d)) = Update.Occ(Diff.pos(d)) + Diff.val(d);
+    Update.Nb = Update.Nb + Diff.val(d);
+    for m = 1:abs(Diff.val(d))
+        Ratio = Ratio * sqrt(m+min([Update.Occ(Diff.pos(d)),BECRObj.Occ(Diff.pos(d))]))^(-sign(Diff.val(d)));
+    end
+end
+for d = 1:abs(sum(Diff.val))
+    Ratio = Ratio * sqrt(min([Update.Nb,BECRObj.Nb]))^(-sign(sum(Diff.val(d))));
 end

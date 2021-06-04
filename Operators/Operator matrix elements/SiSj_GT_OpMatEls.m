@@ -6,9 +6,9 @@ function [Diff, OpMatEls] = SiSj_GT_OpMatEls(HilbertObj,Cfg,GraphObj)
 % limited number of "reachable" configurations, where the matrix element is
 % non-zero, are returned.
 
-[Cfg_vec] = HilbertObj.FullCfgRef(Cfg); % Build the configuration vector for Cfg for convenience below.
+[Cfg_vec] = HilbertObj.FullCfg(Cfg); % Build the configuration vector for Cfg for convenience below.
 N = Cfg.N; % Number of sites in the system.
-Bonds = GraphObj.Bonds;
+Bonds = GraphObj.Bonds; SLInds = GraphObj.SLInds;
 Nbond = numel(Bonds); % Count the number of bonds provided.
 CoOrd = size(Bonds,2); % Coordination of the lookup list provided.
 
@@ -37,13 +37,13 @@ for c = 1:CoOrd
     for n=1:N
         m = Bonds(n,c); % Site that is bonded to site n.
         % Compute the differences CfgP - Cfg:
-        if m ~= 0
+        if (m ~= 0) && (m ~= n)
             Diff(n+(c-1)*N).pos(1) = n;
             Diff(n+(c-1)*N).val(1) = -2*Cfg_vec(n); % Flip the spin at site n.
             Diff(n+(c-1)*N).pos(2) = m;
             Diff(n+(c-1)*N).val(2) = -2*Cfg_vec(m); % Flip the spin at site m.
-            OpMatEls(n+(c-1)*N) = -(1/4)*(1 - Cfg_vec(n)*Cfg_vec(m)); % Compute matrix element.
-            % Gauge transformation: J{x} = J{y} = -J{z}.
+            OpMatEls(n+(c-1)*N) = ((-1)^(SLInds(n) - SLInds(m)))*...
+                (1/4)*(1 - Cfg_vec(n)*Cfg_vec(m)); % Compute matrix element.
         end
     end
 end

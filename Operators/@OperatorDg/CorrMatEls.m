@@ -1,6 +1,6 @@
 % --- Single configuration correlation profile sampling function ---
 
-function [Diff, OpMatEls] = CorrMatEls(OperatorObj,HilbertObj,Cfg,GraphObj)
+function [Diff, OpMatEls] = CorrMatEls(OperatorObj,Cfg)
 % This function evaluates the expectation values of an Operator that is
 % diagonal in the configuration basis, and also outputs a zero Difference
 % struct - used when CorrMatEls is requested of a diagonal operator.
@@ -12,6 +12,6 @@ Diff.val = 0;
 Diff.type = 0;
 Diff.sign = 1;
 
-OpMatEls = OperatorObj.CfgVal(HilbertObj,Cfg,0,0,GraphObj.Bonds); 
+OpMatEls = OperatorObj.CfgVal(OperatorObj.Hilbert,Cfg,0,0,OperatorObj.Graph.Bonds); 
 
 end

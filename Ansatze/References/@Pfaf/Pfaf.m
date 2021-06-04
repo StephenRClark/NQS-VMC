@@ -25,16 +25,24 @@ classdef Pfaf < Reference
     % ---------------------------------
     
     properties
-        Type = 'Pfaf'; % Identifier for the reference state.
         VFlag = 1; % Variational flag, activated by default.
-        N = 1; % Number of sites, inherited from input Hilbert.
-        Nf = [1 1]; % Number of up and down fermions, inherited from input Hilbert.
-        PairMat = [0 1; -1 0]; % Antisymmetric matrix of pairing amplitudes.
-        Np = 1; % Number of parameters associated with Pfaf if made variational.
     end
     
+    properties (SetAccess = protected)
+        Type = 'Ferm'; % Identifier for the reference state.
+        N = 1; % Number of sites, inherited from input Hilbert.
+        Np = 1; % Number of parameters associated with Pfaf if made variational.
+        Nf = [1 1]; % Number of up and down fermions, inherited from input Hilbert.
+        PairMat = [0 1; -1 0]; % Antisymmetric matrix of pairing amplitudes.
+        Graph % Details connectivity of sites - used to include symmetries.
+    end
     properties (Hidden)
         ParamCap = 10; % Parameter magnitude cap.
+        OptInds = 1; % Np x 1 vector - if entry n is 1, parameter derivative for p will be calculated.
+    end
+    
+    properties (Hidden, SetAccess = protected)
+        FullCfg = @FullFermCfg; % Function used by Reference to interface with Cfg structs.
         PfI = [0 1; -1 0]; % Placeholder for reduced pairing amplitude matrix inverse, used in ratios.
         PfG = eye(2); % Placeholder for modified matrix used for ratios.
         FermLoc = [1 2]; % Details locations of fermions by index for sign tracking purposes.
@@ -46,7 +54,6 @@ classdef Pfaf < Reference
         PfV = zeros(2,2); % 2N x 2N array used to reconstruct PairMat if variational.
         PfVR = zeros(2,2); % Nf x Nf array constructed from PfV.
         PfVar = 1; % Np x 1 vector of variational parameters in the pairing matrix.
-        OptInds = 1; % Np x 1 vector - if entry n is 1, parameter derivative for p will be calculated.
     end
     
     methods
@@ -55,13 +62,13 @@ classdef Pfaf < Reference
             % Required fields in Params:
             % PfVar - Np x 1 vector of parameters desired in pairing amplitude matrix.
             % PfV - 2N x 2N array detailing parameters associated with each pairing term.
-            if nargin == 2
+            if nargin == 3
                 disp('No variational flag specified - assuming fixed Slater determinant reference.')
                 obj.Np = 0;
-            elseif nargin == 3
+            elseif nargin == 4
                 obj.Np = numel(Params.PfVar); obj.VFlag = VFlag;
             end
-            N = Hilbert.N; obj.N = Hilbert.N;
+            N = Hilbert.N; obj.N = N;
             if isempty(Hilbert.Sector)
                 % Placeholder N_up and N_dn if no Sector specified.
                 Nf = [round(N/2) round(N/2)];
@@ -72,7 +79,7 @@ classdef Pfaf < Reference
             
             % Pfaf can be initialised in two ways - from the eigenstates of
             % a quadratic Hamiltonian, and with random parameters with
-            % symmetries imposed by Graph. 
+            % symmetries imposed by Graph.
             % First option will initialise with FixedInitPsiPfaf, though if
             % variational, will then take the individual terms and optimise
             % without regard for initial Hamiltonian parameters.
@@ -85,36 +92,47 @@ classdef Pfaf < Reference
                 [obj] = FixedInitPsiPfaf(obj,Params);
             else % Will assume random parameters subject to Graph symmetries if no CArr present.
                 [obj] = RandomInitPsiPfaf(obj,Graph,Params);
-            end            
+            end
         end
         
-        % Initialise Reference configuration values given a starting Cfg.
+        % PrepPsi: Initialise Reference configuration values given a starting Cfg.
         function [obj] = PrepPsi(obj,Hilbert,Cfg)
             obj = PrepPsiPfaf(obj,Hilbert,Cfg);
         end
         
-        % Update Reference configuration information according to Update.
+        % PsiCfgUpdate: Update Reference configuration information according to Update.
         function [obj] = PsiCfgUpdate(obj,Update)
             obj = PsiCfgUpdatePfaf(obj,Update);
         end
         
-        % Update Reference variational parameters according to changes dP.
-        function obj = PsiUpdate(obj,~,dP)
-            obj = PsiUpdatePfaf(obj,0,dP);
+        % PsiUpdate: Update Reference variational parameters according to changes dP.
+        function obj = PsiUpdate(obj,dP)
+            obj = PsiUpdatePfaf(obj,dP);
         end
-    end
-    
-    methods (Static)
-        % Ratio between two configurations differing by Diff.
+        
+        % RndBatchSelect: Randomly select some proportion of parameters to
+        % optimise and disable optimisation of the rest. Used for random
+        % batch optimisation schemes.
+        function [obj] = RndParamSelect(obj,OFrac)
+            NpR = round(min(max(1,OFrac*obj.Np),obj.Np)); % Ensure at least 1 or at most Np are selected.
+            OptIndsP = zeros(obj.Np,1); OptIndsP(randperm(obj.Np,NpR,1)) = 1;
+            obj.OptInds = OptIndsP;
+        end
+        
+        % ParamList; outputs an Np x 1 vector of parameter values.
+        function [Params] = ParamList(obj)
+            Params = obj.PfVar;
+        end
+        
+        % PsiRatio: Ratio between two configurations differing by Diff.
         function [Ratio,Update] = PsiRatio(obj,Diff)
             [Ratio,Update] = PsiRatioPfaf(obj,Diff);
         end
         
-        % Logarithmic derivative for the variational parameters in Reference.
-        function [dLogp] = LogDeriv(obj,Hilbert,~,Cfg)
-            [dLogp] = LogDerivPfaf(obj,Hilbert,Cfg);
+        % LogDeriv: Logarithmic derivative for the variational parameters in Reference.
+        function [dLogp] = LogDeriv(obj,Cfg)
+            [dLogp] = LogDerivPfaf(obj,Cfg);
         end
     end
     
 end
-

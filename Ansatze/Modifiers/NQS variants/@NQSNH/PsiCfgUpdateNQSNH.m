@@ -22,6 +22,5 @@ function [NQSObj] = PsiCfgUpdateNQSNH(NQSObj,Update)
 % Update.NsqVec - vector of new squared visible occupancies.
 % ---------------------------------
 
-
 % Just overwrite the configuration information computed earlier.
 NQSObj.Theta = Update.Theta; NQSObj.NsqVec = Update.NsqVec;

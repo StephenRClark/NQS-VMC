@@ -4,7 +4,7 @@ function [CfgVal] = NiNj_Ferm_CfgVal(Hilbert,Cfg,~,~,Bonds)
 % Given a fermionic configuration Cfg this function computes the matrix
 % element <Cfg|N{i}*N{j}|Cfg>.
 
-[Cfg_vec] = Hilbert.FullCfgRef(Cfg); % Build the configuration vector for Cfg for convenience below.
+[Cfg_vec] = Hilbert.FullCfg(Cfg); % Build the configuration vector for Cfg for convenience below.
 N = Cfg.N; % Number of sites in the system.
 CoOrd = size(Bonds,2); % Coordination of the lookup list provided.
 

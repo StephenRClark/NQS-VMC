@@ -8,7 +8,7 @@ classdef NQSTISS < NQS
     % Format for NQS Modifier object with translation invariance:
     % - NQS.Nv = number of "visible" spins.
     % - NQS.Nh = number of "hidden" spins.
-    % - NQS.Np = number of parameters in the ansatz = Nh + Alpha + 1. (computed here).
+    % - NQS.Np = number of parameters in the ansatz = Nh + Alpha + 1.
     % - NQS.a = (Nv x 1) vector - visible site bias.
     % - NQS.b = (Nh x 1) vector - hidden site bias.
     % - NQS.W = (Nh x Nv) matrix - hidden-visible coupling terms.
@@ -27,7 +27,7 @@ classdef NQSTISS < NQS
     % - (Alpha*Nv x 1) for d/dWv.
     % ---------------------------------
     
-    properties % Default to one visible, one hidden plus state with no input.
+    properties (SetAccess = protected) % Default to one visible, one hidden plus state with no input.
         ati = 0; % Visible site bias, 1 x 1 scalar.
         bti = 0; % Hidden site biases, Alpha x 1 vector.
         Wv = 0; % Hidden-visible couplings, Alpha x Nv matrix.
@@ -39,13 +39,11 @@ classdef NQSTISS < NQS
         % Constructor for 1D translation invariant NQS:
         function obj = NQSTISS(Hilbert,Graph,Params,VFlag)
             obj@NQS(Hilbert,Graph,Params,VFlag);
-            if obj.SFlag == 0
-                error('Provided Hilbert object does not describe a spin-symmetric system. Try NQSTI as an alternative.');
-            end
-            obj = RandomInitPsiNQSTISS(obj,Graph,Params);
+            obj = RandomInitPsiNQSTISS(obj,Params);
         end
         
-        % Update Modifier variational parameters according to changes dP.
+        % PsiUpdate: Update Modifier variational parameters according to
+        % changes dP.
         function obj = PsiUpdate(obj,Graph,dP)
             obj = PsiUpdateNQSTISS(obj,Graph,dP);
         end
@@ -53,14 +51,24 @@ classdef NQSTISS < NQS
         % PsiCfgUpdate inherited from NQS.
         
         % PrepPsi inherited from NQS.
-    end
-    
-    methods (Static)
+        
+        % AddHidden: Generate additional hidden units and associated
+        % parameters.
+        function [obj] = AddHidden(obj,Params)
+            obj = AddHiddenNQSTISS(obj,Params);
+        end
+        
         % PsiRatio inherited from NQS.
         
-        % Logarithmic derivative for the variational parameters in Modifier.
-        function [dLogp] = LogDeriv(obj,Hilbert,Graph,Cfg)
-            [dLogp] = LogDerivNQSTISS(obj,Hilbert,Graph,Cfg);
+        % LogDeriv: Logarithmic derivative for the variational parameters
+        % in Modifier.
+        function [dLogp] = LogDeriv(obj,Cfg)
+            [dLogp] = LogDerivNQSTI(obj,Cfg);
+        end
+        
+        % ParamList: outputs a Np x 1 vector of parameters.
+        function [Params] = ParamList(obj)
+            Params = ParamListNQSTI(obj);
         end
     end
     

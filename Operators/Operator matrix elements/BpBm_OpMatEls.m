@@ -6,7 +6,10 @@ function [Diff, OpMatEls] = BpBm_OpMatEls(HilbertObj,Cfg,GraphObj)
 % limited number of "reachable" configurations, where the matrix element is
 % non-zero, are returned.
 
-[Cfg_vec] = HilbertObj.FullCfgRef(Cfg); % Build the configuration vector for Cfg for convenience below.
+% As operator acts to left, the conjugate is applied to the supplied
+% configuration.
+
+[Cfg_vec] = HilbertObj.FullCfg(Cfg); % Build the configuration vector for Cfg for convenience below.
 N = Cfg.N; % Number of sites in the system.
 Bonds = GraphObj.Bonds;
 Nbond = numel(Bonds); CoOrd = size(Bonds,2); % Coordination of the lookup list provided.
@@ -34,29 +37,29 @@ for c = 1:CoOrd
     for n = 1:N
         m = Bonds(n,c); DInd = 2*CoOrd*(n-1) + 2*c - 1; % Difference index.
         if m ~= 0 && m ~= n
-            Diff(DInd).pos(1) = n;
-            Diff(DInd).val(1) = -1; % Remove boson from site n.
-            Diff(DInd).pos(2) = m;
-            Diff(DInd).val(2) = 1; % Add boson to site m.
-            OpMatEls(DInd) = sqrt((Cfg_vec(m)+1)*Cfg_vec(n)) * ((Cfg_vec(m)+1) <= Cfg.Nmax);
+            Diff(DInd).type = 1;
+            Diff(DInd).pos(1) = m;
+            Diff(DInd).val(1) = -1; % Remove boson from site m.
+            Diff(DInd).pos(2) = n;
+            Diff(DInd).val(2) = 1; % Add boson to site n.
+            OpMatEls(DInd) = sqrt((Cfg_vec(n)+1)*Cfg_vec(m)) * ((Cfg_vec(n)+1) <= Cfg.Nmax);
             % Second term comes into play for hardcore boson cases.
             
             % Hermitian conjugate / reverse move.
             Diff(DInd+1).type = 1; 
-            Diff(DInd+1).pos(1) = m;
-            Diff(DInd+1).val(1) = -1; % Remove boson from site m.
-            Diff(DInd+1).pos(2) = n;
-            Diff(DInd+1).val(2) = 1; % Add boson to site n.
-            OpMatEls(DInd+1) = sqrt((Cfg_vec(n)+1)*Cfg_vec(m)) * ((Cfg_vec(n)+1) <= Cfg.Nmax);
+            Diff(DInd+1).pos(1) = n;
+            Diff(DInd+1).val(1) = -1; % Remove boson from site n.
+            Diff(DInd+1).pos(2) = m;
+            Diff(DInd+1).val(2) = 1; % Add boson to site m.
+            OpMatEls(DInd+1) = sqrt((Cfg_vec(m)+1)*Cfg_vec(n)) * ((Cfg_vec(m)+1) <= Cfg.Nmax);
             % Second term comes into play for hardcore boson cases.
             
-        elseif m == n % No bosons move, becomes total number counter.            
+        elseif m == n % No bosons move, becomes number counter.            
             Diff(DInd).type = 1;
-            Diff(DInd).pos = 1;
+            Diff(DInd).pos = m;
             Diff(DInd).val = 0;
             Diff(DInd).num = 0;
-            OpMatEls(DInd) = sum(Cfg_vec);
-            break
+            OpMatEls(DInd) = Cfg_vec(m);
         end
     end
 end

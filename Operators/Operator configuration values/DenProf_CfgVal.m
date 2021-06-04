@@ -9,4 +9,4 @@ function [CfgVal] = DenProf_CfgVal(Hilbert,Cfg,~,~,~)
 % Ferm Hilbert - Up and down density profiles.
 % Bose Hilbert - Density profile.
 
-[CfgVal] = Hilbert.FullCfgRef(Cfg); 
+[CfgVal] = Hilbert.FullCfg(Cfg); 

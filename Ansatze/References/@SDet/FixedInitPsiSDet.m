@@ -57,5 +57,5 @@ for n = 1:2*N
     end
 end
 SDetObj.EnFac = EnFac; 
-SDetObj.OptInds = [0; ones(SDetObj.Np-1,1)]; 
+SDetObj.OptInds = [ones(SDetObj.Np,1)]; 
 % Set the first entry in HVar as the energy scale of the reference.

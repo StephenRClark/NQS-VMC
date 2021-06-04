@@ -7,6 +7,6 @@ function [CfgVal] = Rgdy_Ferm_CfgVal(Hilbert,Cfg,~,~,~)
 
 N = Cfg.N;
 
-[Cfg_vec] = sum(Hilbert.FullCfgRef(Cfg),2); % Build the configuration vector for Cfg for convenience below.
+[Cfg_vec] = sum(Hilbert.FullCfg(Cfg),2); % Build the configuration vector for Cfg for convenience below.
 
 CfgVal = exp(sum(2i*pi*(Cfg_vec.*((1:N).'))/N));

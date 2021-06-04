@@ -17,13 +17,17 @@ classdef Operator
     end
     
     methods (Abstract)
-        % Sample the operator over the primary Bonds in the Graph
-        % associated with the Operator object.        
-        [CorrSamp] = LocalSample(obj,Cfg,EnLoc,dLogp,Ansatz);
+        % LocalSample: Sample the operator over the primary Bonds in the
+        % Graph associated with the Operator object.
+        [CorrSamp] = LocalSample(obj,Cfg,EnLoc,dLogp,AnsatzObj);
         
-        % Sample the operator over the entire Graph associated with the
-        % Operator object.
-        [CorrSamp] = GraphSample(obj,Cfg,EnLoc,dLogp,Ansatz);
+        % GraphSample: Sample the operator over the entire Graph associated
+        % with the Operator object.
+        [CorrSamp] = GraphSample(obj,Cfg,EnLoc,dLogp,AnsatzObj);
+        
+        % CorrMatEls: Given a Cfg struct, output the matrix elements and
+        % configuration differences linked by this Operator.
+        [Diff, OpMatEls] = CorrMatEls(obj,Cfg);
     end
     
 end

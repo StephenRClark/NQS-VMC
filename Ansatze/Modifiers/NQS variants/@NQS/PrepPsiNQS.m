@@ -1,6 +1,6 @@
 % --- General NQS wave function preparation function ---
 
-function [NQSObj] = PrepPsiNQS(NQSObj,HilbertObj,Cfg)
+function [NQSObj] = PrepPsiNQS(NQSObj,Cfg)
 % This function initialises the NQS ansatz structure intermediate
 % information (effective angle theta) given an initial configuration.
 % ---------------------------------
@@ -14,5 +14,5 @@ function [NQSObj] = PrepPsiNQS(NQSObj,HilbertObj,Cfg)
 % - NQS.Theta = (Nh x 1) vector - effective angles.
 % ---------------------------------
 
-[Cfg_vec] = HilbertObj.FullCfgMod(Cfg); % Convert Cfg structure into a spin configuration vector.
+[Cfg_vec] = NQSObj.FullCfg(Cfg); % Convert Cfg structure into a spin configuration vector.
 NQSObj.Theta = NQSObj.b + NQSObj.W*Cfg_vec; % Compute the effective angle for this configuration state.

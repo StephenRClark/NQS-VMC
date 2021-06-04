@@ -6,7 +6,7 @@ function [Diff, OpMatEls] = Sx_OpMatEls(HilbertObj,Cfg)
 % limited number of "reachable" configurations, where the matrix element is
 % non-zero, are returned.
 
-[Cfg_vec] = HilbertObj.FullCfgRef(Cfg); % Build the configuration vector for Cfg for convenience below.
+[Cfg_vec] = HilbertObj.FullCfg(Cfg); % Build the configuration vector for Cfg for convenience below.
 N = Cfg.N; % Number of sites in the system.
 
 % There will be at most N reachable configurations.

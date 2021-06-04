@@ -34,7 +34,7 @@ end
 NsqP = NQSObj.NsqVec + Nsq_shift;% Update the squared occupancy vector for the proposed configuration.
 Ratio = Ratio * exp(sum(Nsq_shift(Diff.pos).*NQSObj.A(Diff.pos))); % Compute visible square bias contribution.
 ThetaP = NQSObj.Theta + Theta_shift; % Update the effective angle for the proposed configuration.
-Ratio = Ratio * prod(SBTrace(ThetaP,NQSObj.HDim,NQSObj.B) ./ ...
-    SBTrace(NQSObj.Theta,NQSObj.HDim,NQSObj.B)); % Compute full ratio.
+Ratio = Ratio * prod(NHTrace(ThetaP,NQSObj.B,NQSObj.HDim) ./ ...
+    NHTrace(NQSObj.Theta,NQSObj.B,NQSObj.HDim)); % Compute full ratio.
 % Collect new configuration information into Update.
 Update.Theta = ThetaP; Update.NsqVec = NsqP;

@@ -1,6 +1,6 @@
 % --- General fermionic Pfaffian initialisation function ---
 
-function [PfafObj] = RandomInitPsiPfaf(PfafObj,GraphObj,Params)
+function [PfafObj] = RandomInitPsiPfaf(PfafObj,Params)
 % This function constructs the fermionic Pfaffian Reference object. The
 % input Pfaf object is assumed to have N and Nf already assigned. The
 % Params structure contains information controlling the form of the
@@ -27,7 +27,7 @@ function [PfafObj] = RandomInitPsiPfaf(PfafObj,GraphObj,Params)
 % Make local copies to reduce notation in code below.
 N = PfafObj.N; % Number of sites.
 Nf = PfafObj.Nf; % 2 x 1 vector of fermion numbers.
-BondMap = GraphObj.BondMap;
+GraphObj = PfafObj.Graph; BondMap = GraphObj.BondMap;
 
 % Construct antisymmetric matrix of parameter numbers PfV according to the
 % symmetry of the Graph and the Pfaffian antisymmetry requirement.

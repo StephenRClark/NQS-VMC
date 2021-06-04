@@ -1,6 +1,6 @@
 % --- Fermionic Slater determinant reference state logarithmic derivative function ---
 
-function dLogp = LogDerivSDet(SDetObj,HilbertObj,Cfg)
+function dLogp = LogDerivSDet(SDetObj,Cfg)
 % This function computes the logarithmic derivative:
 %            dLogp = 1/Psi(Cfg) dPsi(Cfg)/dp
 % w.r.t. each parameter p of the fermionic reference ansatz, for a fermion
@@ -28,7 +28,7 @@ function dLogp = LogDerivSDet(SDetObj,HilbertObj,Cfg)
 % ---------------------------------
 
 % Make local copies to reduce notation in code below.
-N = HilbertObj.N; % Number of sites.
+N = SDetObj.N; % Number of sites.
 FermLoc = SDetObj.FermLoc; DetMat = SDetObj.DetMat;
 Orbitals = SDetObj.Orbitals; N_up = numel(Cfg.up); N_dn = numel(Cfg.dn);
 Nf = N_up + N_dn;

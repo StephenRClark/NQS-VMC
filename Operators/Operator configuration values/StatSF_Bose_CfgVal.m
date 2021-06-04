@@ -1,13 +1,11 @@
 % --- Density correlation configuration value function ---
 
-function [CfgVal] = StatSF_Bose_CfgVal(Hilbert,Cfg,~,~,~)
+function [CfgVal] = StatSF_Bose_CfgVal(Hilbert,Cfg,~,~,Bonds)
 % Given a bosonic configuration Cfg this function computes the value of the
 % static structure factor Nq = <Cfg|n{q}n{-q}|Cfg>. Generalisation to more
 % than one dimension may require adjustment.
-[Cfg_vec] = Hilbert.FullCfgRef(Cfg);
-N = Cfg.N;
-CfgVal = zeros(N,1);
+Dim = size(Bonds,2);
+[Cfg_vec] = Hilbert.FullCfg(Cfg);
 CfgQ_vec = fft(Cfg_vec);
-for q = 1:N
-    CfgVal(q) = CfgQ_vec(1+mod(q-1,N)) * CfgQ_vec(1+mod(1-q,N));
+CfgVal = abs(CfgQ_vec).^2;
 end

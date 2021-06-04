@@ -35,7 +35,7 @@ for h=1:Nh
 end
 for h = 1:Nh
   for v = 1:Nv
-    NQSObj.W(h,v) = Params.c * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
+    NQSObj.W(h,v) = Params.W * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
   end
 end
 

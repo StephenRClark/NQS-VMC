@@ -1,6 +1,6 @@
 % --- General NQS logarithmic derivative function ---
 
-function dLogp = LogDerivNQS(NQSObj,HilbertObj,Cfg)
+function dLogp = LogDerivNQS(NQSObj,Cfg)
 % This function computes the logarithmic derivative:
 %            dLogp = 1/Psi(Cfg) dPsi(Cfg)/dp
 % w.r.t. each parameter p of the NQS ansatz, for a  configuration specifed
@@ -25,7 +25,7 @@ function dLogp = LogDerivNQS(NQSObj,HilbertObj,Cfg)
 Nv = NQSObj.Nv; % Number of "visible" spins.
 Nh = NQSObj.Nh; % Number of "hidden" spins.
 
-Cfg_vec = HilbertObj.FullCfgMod(Cfg); % Build the spin configuration vector.
+Cfg_vec = NQSObj.FullCfg(Cfg); % Build the spin configuration vector.
 
 dLogp = zeros(NQSObj.Np,1); % Initialise full vector of derivatives.
 

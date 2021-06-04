@@ -1,6 +1,6 @@
 % --- General fermionic Pfaffian logarithmic derivative function ---
 
-function dLogp = LogDerivPfaf(PfafObj,HilbertObj,Cfg)
+function dLogp = LogDerivPfaf(PfafObj,Cfg)
 % This function computes the logarithmic derivative:
 %            dLogp = 1/Psi(Cfg) dPsi(Cfg)/dp
 % w.r.t. each parameter p of the fermionic Pfaffian ansatz, for a fermionic
@@ -26,7 +26,7 @@ PfI = PfafObj.PfI; PfVR = PfafObj.PfVR; Np = PfafObj.Np;
 dLogp = zeros(Np,1);
 
 % LogDerivPfaf depends highly on PfV being correct - worth explicitly reconstructing.
-Cfg_vec = reshape(HilbertObj.FullCfgRef(Cfg),numel(PfafObj.FermLoc),1);
+Cfg_vec = reshape(PfafObj.FullCfg(Cfg),numel(PfafObj.FermLoc),1);
 PfafObj.PfVR = PfafObj.PfV(Cfg_vec==1,Cfg_vec==1);
 
 for p = 1:Np

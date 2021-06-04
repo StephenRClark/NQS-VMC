@@ -8,10 +8,17 @@ classdef Plus < Reference
     % structure or format, as it does not alter any amplitudes.
     % ---------------------------------
     
-    properties 
+    properties         
+        VFlag = 0; % Set to 0 as Plus cannot be made variational.        
+    end
+    
+    properties (SetAccess = protected)
         Type = 'Plus'; % Identifier for the reference state.
-        VFlag = 0; % Set to 0 as Plus cannot be made variational.
-        Np = 0; % No variational parameters associated with Plus.
+        Np = 0; % No variational parameters associated with Plus.        
+    end
+    
+    properties (Hidden, SetAccess = protected)
+        FullCfg = []; % No need to carry out any Cfg conversions.
     end
     
     methods 
@@ -28,17 +35,15 @@ classdef Plus < Reference
         end
         
         % Initialise Ansatz configuration values given a starting Cfg.
-        function [obj] = PrepPsi(obj,~,~)
+        function [obj] = PrepPsi(obj,~)
             0;
             % Don't need to do anything. Later version should include some
             % way to avoid the function call, but initial version will have
             % this empty function called each time rather than 'if' checks.
         end
-    end
-    
-    methods (Static)
+   
         % Ratio between two configurations differing by Diff.
-        function [Ratio,Update] = PsiRatio(obj,Diff)
+        function [Ratio,Update] = PsiRatio(obj,~)
            Ratio = 1; Update = [];
            % Don't need to do anything. Later version should include some
            % way to avoid the function call, but initial version will have

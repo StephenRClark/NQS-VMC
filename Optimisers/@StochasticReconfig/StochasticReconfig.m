@@ -51,8 +51,35 @@ classdef StochasticReconfig < Optimiser
     end
     
     methods
+        % Generic optimisation - calculate parameter changes for all valid
+        % parameters and apply them.
         function [Ansatz,EvalIter] = Optimise(obj,Sampler,Ansatz)
             [Ansatz,EvalIter] = SROptimise(obj,Sampler,Ansatz);            
+        end
+        
+        % Random batch optimisation - randomly select a subset of the
+        % parameters in the wavefunction for each step and optimise.
+        function [Ansatz,EvalIter] = RndBatchOptimise(obj,Sampler,Ansatz)
+            [Ansatz,EvalIter] = SROptimiseRB(obj,Sampler,Ansatz);            
+        end
+        
+        % Parameter averaging - used as fine-tuning, this averages the
+        % parameters calculated over many sampling / optimisation passes
+        % and outputs them in a vector Params.
+        function [Ansatz,EnIter,Params] = ParamAvgOptimise(obj,Sampler,Ansatz)
+            [Ansatz,EnIter,Params] = SROptimiseAvg(obj,Sampler,Ansatz);            
+        end
+        
+        % PropertyList: Output a struct with the relevant properties as 
+        % separate fields. Used for interfacing with C++ code.
+        function [Properties] = PropertyList(obj)
+            Properties.Npass = obj.Npass; Properties.Ncore = obj.Ncore;
+            Properties.ExtraSamp = obj.ExtraSamp; Properties.LearnRate = obj.LRate;
+            Properties.Regularisation = [obj.lambda0; obj.lambda_min; obj.b];
+            Properties.Rollback = [obj.PSave; obj.PShift];
+            Properties.EnergyTolerance = [obj.ETol; obj.ESens];
+            Properties.EnergySensitivity = [obj.dERTol; obj.dEVTol];
+            Properties.ParamSensitivity = [obj.ParamTol; obj.dPTol];            
         end
     end
     

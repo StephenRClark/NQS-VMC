@@ -29,19 +29,28 @@ classdef SDet < Reference
     % ---------------------------------
     
     properties
-        Type = 'SDet'; % Identifier for the reference state.
-        VFlag = 0; % Variational flag, deactivated by default.
+        VFlag = 0; % Variational flag, deactivated by default.       
+    end
+    
+    properties (SetAccess = protected)
+        Type = 'Ferm'; % Identifier for the reference state.
         N = 1; % Number of sites, inherited from input Hilbert.
+        Np = 0; % Number of variational parameters associated with SDet if made variational.
         Nf = [1 1]; % Number of up and down fermions, inherited from input Hilbert.
         Orbitals = eye(2); % All eigenstates of the provided Hamiltonian.
         % Eigenstates are arranged by 'spin' (i.e. if orbital has greater
         % probability of being occupied by an up or down fermion) then
         % energy in ascending order.
-        Np = 0; % Number of variational parameters associated with SDet if made variational.
+        Graph % Details connectivity of sites - used to include symmetries.
     end
      
     properties (Hidden)
-        ParamCap = 10; % Parameter magnitude cap.
+        ParamCap = 10; % Parameter magnitude cap.        
+        OptInds = 0; % Np x 1 vector - if entry n is 1, parameter derivative for p will be calculated.
+    end
+    
+    properties (Hidden, SetAccess = protected)
+        FullCfg = @FullFermCfg; % Function used by Reference to interface with Cfg structs.
         OrbMat = eye(2); % Reduced orbital matrix used for computing ratios.
         DetMat = eye(2); % Matrix of determinant ratios calculated from OrbMat and Orbitals.
         FermLoc = [1 2]; % Details locations of fermions by index for sign tracking purposes.
@@ -53,23 +62,22 @@ classdef SDet < Reference
         CArr = eye(2); % 2N x 2N x Np array used to reconstruct Hamiltonian if variational.
         WArr = eye(2); % 2N x 2N x Np array transformed from CArr for calculating derivatives.
         HVar = []; % Np x 1 vector of variational terms in the quadratic Hamiltonian.
-        EnFac = eye(2); % 2N x 2N matrix of energy factors used for calculating derivatives.
-        OptInds = 0; % Np x 1 vector - if entry n is 1, parameter derivative for p will be calculated.
+        EnFac = eye(2); % 2N x 2N matrix of energy factors used for calculating derivatives.        
     end
     
     methods
         % Constructor for SDet Reference object:
-        function obj = SDet(Hilbert,Params,VFlag)
-            % Required fields in Params:
+        function obj = SDet(Hilbert,Graph,Params,VFlag)
+            % Notable fields in Params:
             % HVar - Np x 1 vector of parameters desired in quadratic Hamiltonian.
-            % CArr - 2N x 2N x Np array detailing connectivity of each parameter.
-            if nargin == 2
+            % (Optional) CArr - 2N x 2N x Np array detailing connectivity of each parameter.
+            if nargin == 3
                 disp('No variational flag specified - assuming fixed Slater determinant reference.')
                 obj.Np = 0;
-            elseif nargin == 3
-                obj.Np = numel(Params.HVar); obj.VFlag = VFlag;
+            elseif nargin == 4
+                obj.Np = numel(Params.HVar); obj.VFlag = VFlag; obj.OptInds = ones(obj.Np,1);
             end
-            N = Hilbert.N; obj.N = Hilbert.N;
+            N = Hilbert.N; obj.N = Hilbert.N; obj.Graph = Graph;
             if isempty(Hilbert.Sector)
                 % Placeholder N_up and N_dn if no Sector specified.
                 Nf = [round(N/2) round(N/2)];
@@ -80,31 +88,46 @@ classdef SDet < Reference
             [obj] = FixedInitPsiSDet(obj,Params);            
         end
         
-        % Initialise Reference configuration values given a starting Cfg.
-        function [obj] = PrepPsi(obj,Hilbert,Cfg)
-            obj = PrepPsiSDet(obj,Hilbert,Cfg);
+        % PrepPsi: Initialise Reference configuration values given a
+        % starting Cfg.
+        function [obj] = PrepPsi(obj,Cfg)
+            obj = PrepPsiSDet(obj,Cfg);
         end
         
-        % Update Reference configuration information according to Update.
+        % PsiCfgUpdate: Update Reference configuration information
+        % according to Update.
         function [obj] = PsiCfgUpdate(obj,Update)
             obj = PsiCfgUpdateSDet(obj,Update);
         end
         
-        % Update Reference variational parameters according to changes dP.
-        function obj = PsiUpdate(obj,~,dP)
-            obj = PsiUpdateSDet(obj,0,dP);
+        % PsiUpdate: Update Reference variational parameters according to
+        % changes dP.
+        function obj = PsiUpdate(obj,dP)
+            obj = PsiUpdateSDet(obj,dP);
         end
-    end
-    
-    methods (Static)
+        
+        % RndParamSelect: Randomly select some proportion of parameters to
+        % optimise and disable optimisation of the rest. Used for random
+        % batch optimisation schemes.
+        function [obj] = RndParamSelect(obj,OFrac)
+            NpR = round(min(max(1,OFrac*obj.Np),obj.Np)); % Ensure at least 1 or at most Np are selected.
+            OptIndsP = zeros(obj.Np,1); OptIndsP(randperm(obj.Np,NpR)) = 1;
+            obj.OptInds = OptIndsP;
+        end
+        
+        % ParamList; outputs an Np x 1 vector of parameter values.
+        function [Params] = ParamList(obj)
+            Params = obj.HVar;
+        end
+        
         % Ratio between two configurations differing by Diff.
         function [Ratio,Update] = PsiRatio(obj,Diff)
             [Ratio,Update] = PsiRatioSDet(obj,Diff);
         end
         
         % Logarithmic derivative for the variational parameters in Reference.
-        function [dLogp] = LogDeriv(obj,Hilbert,~,Cfg)
-            [dLogp] = LogDerivSDet(obj,Hilbert,Cfg);
+        function [dLogp] = LogDeriv(obj,Cfg)
+            [dLogp] = LogDerivSDet(obj,Cfg);
         end
     end
     

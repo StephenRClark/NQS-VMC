@@ -4,24 +4,22 @@ classdef Sampler
     %   Sampler can be fed into an Optimiser object, or used on its own
     %   by invoking MCMCSample to output sampled quantities.
     
-    properties
-        N % Number of sites.
+    properties (SetAccess = protected)
         Nequil = 5000; % Number of equilibration 'burn in' runs.
         Nblock % Number of Markov chain moves made before sampling.
         Nsamp = 10000; % Number of samples to take.
-        Hamiltonian % Contains the Hamiltonian operator for energy calculations.
+        Hamiltonian % Contains the Hamiltonian operator for energy calculations.        
+    end
+    
+    properties
         Operators % Non-Hamiltonian operators for sampling.
-        Hilbert % Contains configuration information for the Markov chain.
-        Graph % Contains information about the lattice.
     end
     
     methods
         % Constructor for the Sampler object.
-        function [obj] = Sampler(Hilbert,Graph,Hamiltonian,Operators)
-            obj.Hilbert = Hilbert; obj.Graph = Graph;
-            obj.N = Hilbert.N; obj.Nblock = Hilbert.N;
-            obj.Hamiltonian = Hamiltonian; % Requires Hamiltonian object.
-            if nargin == 3 % If no Operators specified, assume none.
+        function [obj] = Sampler(Hilbert,Hamiltonian,Operators)
+            obj.Nblock = Hilbert.N; obj.Hamiltonian = Hamiltonian; % Requires Hamiltonian object.
+            if nargin == 2 % If no Operators specified, assume none.
                 obj.Operators = {};
             else
                 obj.Operators = Operators; % Requires cell array of Operator objects.
@@ -47,15 +45,42 @@ classdef Sampler
         function [obj] = SetHamiltonian(obj,NewH)
             obj.Hamiltonian = NewH;
         end
+        
+        % Reassign or add Operator of choice
+        function [obj] = SetOperator(obj,NewOp,OpInd)
+            if OpInd > numel(obj.Operators)
+                disp(['New Operator index specified is greater than number of existing Operators - '...
+                    'appending to current Operator list.'])
+                obj.Operators{numel(obj.Operators)+1} = NewOp;
+            else
+                obj.Operators{OpInd} = NewOp;
+            end
+        end
     end
     
     methods       
-        % Markov Chain Monte Carlo sampling of an Ansatz using Sampler object.
+        % MCMCSample: Markov Chain Monte Carlo sampling of an Ansatz using
+        % Sampler object. Found in folder.
         [EnAvg,dLogpAvg,EvalAvg,MRate] = MCMCSample(obj,Ansatz)
         
-        % Markov Chain Monte Carlo sampling for final evaluation of
-        % observables.
+        % EvalSample: Markov Chain Monte Carlo sampling for final
+        % evaluation of observables. Found in folder.
         [EnAvg,EnSamp,EvalAvg,EvalSamp] = EvalSample(obj,Ansatz);
+        
+        % MultiChainSample: Multithreaded Markov Chain Monte Carlo sampling
+        % for final evaluation of observables. Found in folder.
+        [EnAvg,EnSamp,EvalAvg,EvalSamp] = MultiChainSample(obj,Ansatz,Ncore)
+        
+        % PropertyList: Output a struct with the relevant properties as 
+        % separate fields. Used for interfacing with C++ code.
+        function [Properties] = PropertyList(obj)
+            Properties.Nsamp = obj.Nsamp; Properties.Nequil = obj.Nequil;
+            Properties.Nblock = obj.Nblock; Properties.Hamiltonian = obj.Hamiltonian.PropertyList;
+            Properties.Operator = cell(numel(obj.Operators),1);
+            for o = 1:numel(obj.Operators)
+                Properties.Operator{o} = obj.Operators{o}.PropertyList;
+            end
+        end
     end
     
 end

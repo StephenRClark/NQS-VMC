@@ -1,6 +1,6 @@
 % --- General fermionic Pfaffian wave function preparation function ---
 
-function [PfafObj] = PrepPsiPfaf(PfafObj,~,Cfg)
+function [PfafObj] = PrepPsiPfaf(PfafObj,Cfg)
 % This function initialises the fermionic Pfaffian ansatz structure 
 % intermediate information (matrices) given an initial configuration.
 % ---------------------------------

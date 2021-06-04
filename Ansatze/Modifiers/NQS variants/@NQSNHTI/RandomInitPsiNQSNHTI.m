@@ -1,6 +1,6 @@
 % --- General NQS wave function random initialisation function ---
 
-function [NQSObj] = RandomInitPsiNQSNHTI(NQSObj,GraphObj,Params)
+function [NQSObj] = RandomInitPsiNQSNHTI(NQSObj,Params)
 % This function populates random initial NQS ansatz structure. The input
 % Ansatz is assumed to have Nv and Nh defined already. The Params structure
 % contains information controlling the form of random elements generated.
@@ -32,7 +32,7 @@ function [NQSObj] = RandomInitPsiNQSNHTI(NQSObj,GraphObj,Params)
 % Make local copies to reduce notation in code below.
 Nv = NQSObj.Nv; % Number of "visible" spins.
 Nh = NQSObj.Nh; % Number of "hidden" spins.
-Ng = GraphObj.N; % Number of actual sites in Graph - necessary if NQS uses enlarged lattice.
+GraphObj = NQSObj.Graph; Ng = GraphObj.N; % Number of actual sites in Graph - necessary if NQS uses enlarged lattice.
 Alpha = round(Nh/Ng); NQSObj.Alpha = Alpha; % Hidden unit density, needs to be integer.
 NQSObj.Np = Nv*Alpha + 2*Alpha + 2; % The number of variational parameters.
 BondMap = GraphObj.BondMap; % Bond map detailing all possible distinct
@@ -46,6 +46,8 @@ Nh = Ntr * Alpha; NQSObj.Nh = Nh; % Determine and reassign Nh required.
 
 NQSObj.b = zeros(Nh,1);
 NQSObj.bti = zeros(Alpha,1);
+NQSObj.B = zeros(Nh,1);
+NQSObj.Bti = zeros(Alpha,1);
 NQSObj.W = zeros(Nh,Nv);
 NQSObj.Wv = zeros(Alpha,Nv);
 NQSObj.Theta = zeros(Nh,1);
@@ -64,7 +66,7 @@ for a = 1:Alpha
     NQSObj.bti(a) = Params.b * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
     NQSObj.Bti(a) = Params.B * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
     for n = 1:Nv
-        NQSObj.Wv(a,n) = Params.c * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
+        NQSObj.Wv(a,n) = Params.W * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
     end
 end
 

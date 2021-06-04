@@ -3,7 +3,7 @@ classdef OperatorDg < Operator
     % the configuration basis.
     %   Operator is overarching class.
     
-    properties
+    properties (SetAccess = protected)
         CfgVal % Some function that evaluates the operator value for a particular Cfg.
     end
     
@@ -13,17 +13,25 @@ classdef OperatorDg < Operator
             obj.CfgVal = CfgVal; % CfgVal should be a function handle.
         end
         
-        % Sample the operator over the primary Bonds in the Graph
-        % associated with the Operator object.        
+        % LocalSample: found in folder. 
         [CorrSamp] = LocalSample(obj,Cfg,EnLoc,dLogp,Ansatz);
         
-        % Sample the operator over the entire Graph associated with the
-        % Operator object.
+        % GraphSample: found in folder.
         [CorrSamp] = GraphSample(obj,Cfg,EnLoc,dLogp,Ansatz);
         
-        % Generate a zero difference and the configuration value when
-        % CorrMatEls is requested.
-        [Diff,CorrMatEls] = CorrMatEls(obj,Hilbert,Cfg,Graph);
+        % CorrMatEls: found in folder.
+        [Diff, OpMatEls] = CorrMatEls(obj,Cfg)
+                
+        % RWMatEls: found in folder.
+        [CfgP, RWOpCells, CfgInds] = RWMatEls(obj,~,Cfg,InitCells,CfgInds,Ind);
+        
+        % PropertyList: Output a struct with the relevant properties as 
+        % separate fields. Used for interfacing with C++ code.
+        function [Properties] = PropertyList(obj)
+            Properties.Hilbert = obj.Hilbert.PropertyList; 
+            Properties.Graph = obj.Graph.PropertyList; 
+            Properties.FuncHandle = func2str(obj.CfgVal);
+        end
     end
+    
 end
-

@@ -6,20 +6,30 @@ classdef Reference
     %   SDet and Pfaf offer variational versions.
     
     properties (Abstract)
-        Type % Identifier for the reference state.
         VFlag % Set to 1 if the reference is meant to be variational.
+    end
+    
+    properties (Abstract, SetAccess = protected)
+        Type % Identifies Hilbert compatibility.
         Np % All References need Np for NpTotal tracking purposes.
     end
     
+    properties (Abstract, Hidden, SetAccess = protected)
+        FullCfg % Function used by Reference to interface with Cfg structs.
+    end
+    
     methods (Abstract)
-        % Ratio between two configurations differing by Diff.
-        [Ratio,Update] = PsiRatio(obj,Diff)
+        % PsiCfgUpdate: Update Reference configuration information inside Update.
+        [obj] = PsiCfgUpdate(obj,Update);
         
-        % Update Reference configuration information according to Update.
-        [Reference] = PsiCfgUpdate(obj,Update)
+        % PrepPsi: Initialise Reference configuration information given a starting Cfg.
+        [obj] = PrepPsi(obj,Cfg);
         
-        % Initialise Ansatz configuration values given a starting Cfg.
-        [Reference] = PrepPsi(obj,Cfg)
+        % PsiRatio: Ratio of amplitudes for two configurations separated by Diff.
+        [Ratio,Update] = PsiRatio(obj,Diff);
+        
+        % PsiUpdate, LogDeriv and RndBatchSelect are included case-by-case,
+        % since not all References are allowed to be variational.
     end
     
 end

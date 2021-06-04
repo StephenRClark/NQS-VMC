@@ -1,6 +1,6 @@
 % --- General NQS wave function random initialisation function ---
 
-function [NQSObj] = RandomInitPsiNQSTI(NQSObj,GraphObj,Params)
+function [NQSObj] = RandomInitPsiNQSTI(NQSObj,Params)
 % This function populates random initial NQS ansatz structure. The input
 % Ansatz is assumed to have Nv and Nh defined already. The Params structure
 % contains information controlling the form of random elements generated.
@@ -9,7 +9,7 @@ function [NQSObj] = RandomInitPsiNQSTI(NQSObj,GraphObj,Params)
 % Format for NQS Modifier object with translation invariance:
 % - NQS.Nv = number of "visible" spins.
 % - NQS.Nh = number of "hidden" spins.
-% - NQS.Np = number of parameters in the ansatz = Nv*Alpha + Alpha + Nv/Ng. (computed here).
+% - NQS.Np = number of parameters in the ansatz = Nv*Alpha + Alpha + Nv/Ng.
 % - NQS.a = (Nv x 1) vector - visible site bias.
 % - NQS.b = (Nh x 1) vector - hidden site bias.
 % - NQS.W = (Nh x Nv) matrix - hidden-visible coupling terms.
@@ -26,7 +26,7 @@ function [NQSObj] = RandomInitPsiNQSTI(NQSObj,GraphObj,Params)
 % Make local copies to reduce notation in code below.
 Nv = NQSObj.Nv; % Number of "visible" spins.
 Nh = NQSObj.Nh; % Number of "hidden" spins.
-Ng = GraphObj.N; % Number of actual sites in Graph - necessary if NQS uses enlarged lattice.
+GraphObj = NQSObj.Graph; Ng = GraphObj.N; % Number of actual sites in Graph - necessary if NQS uses enlarged lattice.
 Alpha = round(Nh/Ng); NQSObj.Alpha = Alpha; % Hidden unit density, needs to be integer.
 
 NQSObj.Np = Nv*Alpha + Alpha + Nv/Ng; % The number of variational parameters.
@@ -56,7 +56,7 @@ end
 for a = 1:Alpha
     NQSObj.bti(a) = Params.b * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
     for n = 1:Nv
-        NQSObj.Wv(a,n) = Params.c * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
+        NQSObj.Wv(a,n) = Params.W * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
     end
 end
 

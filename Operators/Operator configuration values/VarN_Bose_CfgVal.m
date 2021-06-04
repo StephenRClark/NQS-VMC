@@ -4,7 +4,7 @@ function [CfgVal] = VarN_Bose_CfgVal(Hilbert,Cfg,~,~,~)
 % Given a bosonic configuration Cfg this function computes the matrix
 % element <Cfg|N^2|Cfg> - <Cfg|N|Cfg>^2.
 
-[Cfg_vec] = Hilbert.FullCfgRef(Cfg); % Build the configuration vector for Cfg for convenience below.
+[Cfg_vec] = Hilbert.FullCfg(Cfg); % Build the configuration vector for Cfg for convenience below.
 N = Cfg.N; % Number of sites in the system.
 Nb = Cfg.Nb; % Number of bosons in the configuration.
 

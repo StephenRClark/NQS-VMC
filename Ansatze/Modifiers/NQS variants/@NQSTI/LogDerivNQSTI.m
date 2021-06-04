@@ -1,6 +1,6 @@
 % --- General NQS logarithmic derivative function ---
 
-function dLogp = LogDerivNQSTI(NQSObj,HilbertObj,GraphObj,Cfg)
+function dLogp = LogDerivNQSTI(NQSObj,Cfg)
 % This function computes the logarithmic derivative:
 %            dLogp = 1/Psi(Cfg) dPsi(Cfg)/dp
 % w.r.t. each parameter p of the NQS Spin ansatz, for a configuration
@@ -11,7 +11,7 @@ function dLogp = LogDerivNQSTI(NQSObj,HilbertObj,GraphObj,Cfg)
 % Format for NQS Modifier object with translation invariance:
 % - NQS.Nv = number of "visible" spins.
 % - NQS.Nh = number of "hidden" spins.
-% - NQS.Np = number of parameters in the ansatz = Nh + Alpha + 1. (computed here).
+% - NQS.Np = number of parameters in the ansatz = Nh + Alpha + 1.
 % - NQS.a = (Nv x 1) vector - visible site bias.
 % - NQS.b = (Nh x 1) vector - hidden site bias.
 % - NQS.W = (Nh x Nv) matrix - hidden-visible coupling terms.
@@ -30,13 +30,13 @@ function dLogp = LogDerivNQSTI(NQSObj,HilbertObj,GraphObj,Cfg)
 
 % Make local copies to reduce notation in code below.
 Nv = NQSObj.Nv; % Number of "visible" spins.
-BondMap = GraphObj.BondMap; % Bond map detailing all possible distinct
+GraphObj = NQSObj.Graph; BondMap = GraphObj.BondMap; % Bond map detailing all possible distinct
 % translates by some combination of Graph.Lvecs.
 Ng = GraphObj.N; % Number of actual sites in Graph - necessary if NQS uses enlarged lattice.
 Ntr = numel(BondMap); % Multiplicity of each hidden unit layer depends on number of distinct translates.
 Alpha = NQSObj.Alpha; % Hidden unit density, needs to be integer.
 
-Cfg_vec = HilbertObj.FullCfgMod(Cfg); % Build the spin configuration vector.
+Cfg_vec = NQSObj.FullCfg(Cfg); % Build the spin configuration vector.
 
 dLogp = zeros(NQSObj.Np,1); % Initialise full vector of derivatives.
 
@@ -48,12 +48,13 @@ for s = 1:Ns
     end
 end
 
+dTheta = tanh(NQSObj.Theta);
 
 % Accounting for shift structure of W matrix requires either construction
 % of shifted Theta matrix or shifted Cfg vector - the latter is done here
 for a=1:Alpha % Derivatives need to be computed by Alpha sector
     if NQSObj.OptInds(Ns+a) == 1
-        dLogp(Ns+a) = sum(tanh(NQSObj.Theta((1:Ntr)+(a-1)*Ntr))); % Insert d/db.
+        dLogp(Ns+a) = sum(dTheta((1:Ntr)+(a-1)*Ntr)); % Insert d/db.
     end
     for v = 1:Nv
         PInd = Ns + Alpha + v + (a-1)*Nv;
@@ -61,7 +62,9 @@ for a=1:Alpha % Derivatives need to be computed by Alpha sector
         if NQSObj.OptInds(PInd) == 1
             for b = 1:Ntr
                 TInd = b + (a-1)*Ntr; VInd = BondMap{b}(1+mod(v-1,Ng)) + Ng*(ceil(v/Ng)-1);
-                dLogp(PInd) = dLogp(PInd) + (Cfg_vec(VInd)*tanh(NQSObj.Theta(TInd))); % Insert d/dW.
+                if VInd ~= 0
+                    dLogp(PInd) = dLogp(PInd) + (Cfg_vec(VInd)*dTheta(TInd)); % Insert d/dW.
+                end
             end
         end
     end

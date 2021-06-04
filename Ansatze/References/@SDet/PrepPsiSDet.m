@@ -1,6 +1,6 @@
 % --- General fermionic determinant wave function preparation function ---
 
-function [SDetObj] = PrepPsiSDet(SDetObj,HilbertObj,Cfg)
+function [SDetObj] = PrepPsiSDet(SDetObj,Cfg)
 % This function initialises the fermionic determinant ansatz structure
 % intermediate information (matrices) given an initial configuration.
 % ---------------------------------
@@ -19,7 +19,7 @@ function [SDetObj] = PrepPsiSDet(SDetObj,HilbertObj,Cfg)
 % ---------------------------------
 
 % Make local copies to reduce notation in code below.
-N = HilbertObj.N; % Number of sites.
+N = SDetObj.N; % Number of sites.
 SDetObj.Nf = [numel(Cfg.up) numel(Cfg.dn)]; % Assign Nf - may change later.
 Nf = sum(SDetObj.Nf); % Number of fermions.
 
