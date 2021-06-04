@@ -8,7 +8,7 @@ Copyright (C) 2019 **Michael Pei** and **Stephen Clark**
 
 Purpose of code
 --------------------
-Neural-network Quantum States (NQS) are a powerful ansatz for many-body quantum systems inspired by artificial neural networks approaches in machine learning. They were first introduced into the context of variational Monte Carlo (VMC) calculation by the seminal work of Carleo and Troyer _“Solving the quantum many-body problem with artificial neural networks”_ Science **355**, 602 (2017). **NQS-VMC** is a open-source software project with two key aims:
+Neural-network Quantum States (NQS) are a powerful ansatz for many-body quantum systems inspired by artificial neural networks approaches in machine learning. They were first introduced into the context of variational Monte Carlo (VMC) calculation by the seminal work of Carleo and Troyer _“Solving the quantum many-body problem with artificial neural networks”_ Science **355**, 602 (2017). **NQS-VMC** is an open-source software project with two key aims:
 
   1. to provide code for performing cutting-edge VMC calculations with NQS,
   2. to be as simple and easier to use as possible to enhance fundamental and pedagogical understanding of NQS.
@@ -19,9 +19,9 @@ N.B. C++ version does not have complete parity with MATLAB version - some Operat
 Running the code
 --------------------
 
-Running NQS-VMC requires MATLAB. Download the code from this repository. Edit the file `set_NQS_path.m` by defining the directory where the NQS-VMC is located. Run this script to add this directory and all subdirectories to the MATLAB path.
+Running NQS-VMC requires MATLAB. Download the code from this repository. Edit the file `set_NQS_path.m` within the `MATLAB` folder by defining the directory where the NQS-VMC is located. Run this script to add this directory and all subdirectories to the MATLAB path.
 
-Start from the files `examples/*.m` where scripts are provided for doing NQS VMC calculations on the spin-1/2 XXZ, Bose and Fermi Hubbard models.
+Start from the files `MATLAB/examples/*.m` where scripts are provided for doing NQS VMC calculations on the spin-1/2 XXZ, Bose and Fermi Hubbard models.
 
 Coming soon ...
 --------------------
