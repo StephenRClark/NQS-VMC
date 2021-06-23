@@ -18,11 +18,16 @@ namespace nqsvmc
 	class GeneralFerm : public GeneralHilbert
 	{
 	public:
+		// - SiteDim returns the single site local dimension of the Hilbert space.
 		virtual int SiteDim() const = 0;
+		// - SysSize returns the number of sites in the system.
 		virtual int SysSize() const = 0;
+		// - RandomCfg will generate a starting random configuration. Subclass specific.
 		virtual Config* RandomCfg() const = 0;
+		// - PropMove will generate a new configuration from an existing one. Subclass specific.
 		virtual Diff PropMove(Config* Cfg) const = 0;
-		virtual Config* Diff2Cfg(Config* Cfg, Diff diff) const = 0;
+		// - Diff2Cfg will output new SpinCfg objects related to the input SpinCfg by the supplied Diff structs.
+		Config* Diff2Cfg(Config* Cfg, Diff diff) const;
 	};
 	
 
@@ -34,116 +39,18 @@ namespace nqsvmc
 		int N_dn; // Number of down fermions.
 	public:
 		// Constructor for the variable number Ferm Hilbert subclass.
-		FermVN(int size, int nferm, int sztot)
-		{
-			if (abs(sztot) > nferm)
-			{
-				cerr << "Desired spin projection is larger than permitted by fermion number." << endl;
-				std::abort();
-			}
-			if (nferm > 2 * size)
-			{
-				cerr << "Number of fermions is larger than permitted by system size." << endl;
-				std::abort();
-			}
-			if ((nferm % 2) != (sztot % 2))
-			{
-				cerr << "Desired fermion count and spin projection are incompatible." << endl;
-				std::abort();
-			}
-			if (size <= 0)
-			{
-				cerr << "Invalid system size." << endl;
-				std::abort();
-			}
-			N = nferm;
-			N_up = (nferm + sztot) / 2;
-			N_dn = (nferm - sztot) / 2;
-		}
-		// Observer functions:
-		int SiteDim() const
-		{
-			return 4;
-		}
-		int SysSize() const
-		{
-			return N;
-		}
+		FermVN(int size, int nferm, int sztot);
+		// Observer functions need to be overwritten here to access subclass properties.
+		// - SiteDim returns the single site local dimension of the Hilbert space.
+		int SiteDim() const;
+		// - SysSize returns the number of sites in the system.
+		int SysSize() const;
 		// Configuration manipulation functions:
-		// - RandomCfg will generate a configuration with the populations specified in Hilbert.
-		Config* RandomCfg() const
-		{
-			vector<int> upstate{ 0 }, dnstate{ 0 };
-			uniform_int_distribution<int> shrtdist(0, N-1);
-			upstate.resize(N);
-			dnstate.resize(N);
-			random_device rd;
-			std::default_random_engine rnd(rd());
-			int site;
-			for (int i = 0; i < N_up; i++)
-			{
-				site = shrtdist(rnd);
-				while (upstate[site] == 1) // Ensure target site is not already populated.
-				{
-					site = shrtdist(rnd);
-				}
-				upstate[site] = 1;
-			}
-			for (int j = 0; j < N_dn; j++)
-			{
-				site = shrtdist(rnd);
-				while (dnstate[site] == 1) // Ensure target site is not already populated.
-				{
-					site = shrtdist(rnd);
-				}
-				dnstate[site] = 1;
-			}
-			Config* Conf = new Config(upstate, dnstate);
-			return Conf;
-		}
-		// PropMove will alter occupation of one random site.
-		Diff PropMove(Config* Cfg) const
-		{
-			vector<int> state(Cfg->FullCfg());
-			uniform_int_distribution<int> longdist(0, 2*N - 1);
-			random_device rd;
-			std::default_random_engine rnd(rd());
-			int site = longdist(rnd);
-			Diff diff;
-			diff.num = 1;
-			diff.val.resize(1);
-			diff.pos.resize(1);
-			diff.val[0] = 1 - 2 * state[site];
-			diff.pos[0] = site;
-			state[site] += 1;
-			state[site] = state[site] % 2;
-			int nswap = 0; // Counter for operator swaps invoked with this move.
-			for (int i = 0; i < site; i++)
-			{
-				nswap += state[i];
-			}
-			diff.sign = 1 - 2 * (nswap % 2);
-			return diff;
-		}
-		Config* Diff2Cfg(Config* Cfg, Diff diff) const
-		{
-			vector<int> state(Cfg->FullCfg());
-			for (int d = 0; d < diff.num; d++)
-			{
-				state[diff.pos[d]] += diff.val[d];
-			}
-			vector<int> upstate;
-			vector<int> dnstate;
-			upstate.resize(N);
-			dnstate.resize(N);
-			for (int i = 0; i < N; i++)
-			{
-				upstate[i] = state[i];
-				dnstate[i] = state[i + N];
-			}
-			Config* NewConf = new Config(upstate, dnstate);
-			return NewConf;
-		}
+		// - FermVN::RandomCfg will generate a configuration with the specified start population.
+		Config* RandomCfg() const;
+		// - FermVN::PropMove will alter occupation of one random site.
+		Diff PropMove(Config* Cfg) const;
+		// - Diff2Cfg inherited from GeneralFerm.		
 	};
 
 	class FermFN : public GeneralFerm // Subclass for fixed total number and variable spin.
@@ -154,124 +61,18 @@ namespace nqsvmc
 		int N_dn; // Number of down fermions.
 	public:
 		// Constructor for the variable number Ferm Hilbert subclass.
-		FermFN(int size, int nferm, int sztot)
-		{
-			if (abs(sztot) > nferm)
-			{
-				cerr << "Desired spin projection is larger than permitted by fermion number." << endl;
-				std::abort();
-			}
-			if (nferm > 2 * size)
-			{
-				cerr << "Number of fermions is larger than permitted by system size." << endl;
-				std::abort();
-			}
-			if ((nferm % 2) != (sztot % 2))
-			{
-				cerr << "Desired fermion count and spin projection are incompatible." << endl;
-				std::abort();
-			}
-			if (size <= 0)
-			{
-				cerr << "Invalid system size." << endl;
-				std::abort();
-			}
-			N = nferm;
-			N_up = (nferm + sztot) / 2;
-			N_dn = (nferm - sztot) / 2;
-		}
-		// Observer functions:
-		int SiteDim() const
-		{
-			return 4;
-		}
-		int SysSize() const
-		{
-			return N;
-		}
+		FermFN(int size, int nferm, int sztot);
+		// Observer functions need to be overwritten here to access subclass properties.
+		// - SiteDim returns the single site local dimension of the Hilbert space.
+		int SiteDim() const;
+		// - SysSize returns the number of sites in the system.
+		int SysSize() const;
 		// Configuration manipulation functions:
-		// - RandomCfg will generate a configuration with the populations specified in Hilbert.
-		Config* RandomCfg() const
-		{
-			vector<int> upstate{ 0 }, dnstate{ 0 };
-			uniform_int_distribution<int> shrtdist(0, N - 1);
-			random_device rd;
-			std::default_random_engine rnd(rd());
-			upstate.resize(N);
-			dnstate.resize(N);
-			int site;
-			for (int i = 0; i < N_up; i++)
-			{
-				site = shrtdist(rnd);
-				while (upstate[site] == 1) // Ensure target site is not already populated.
-				{
-					site = shrtdist(rnd);
-				}
-				upstate[site] = 1;
-			}
-			for (int j = 0; j < N_dn; j++)
-			{
-				site = shrtdist(rnd);
-				while (dnstate[site] == 1) // Ensure target site is not already populated.
-				{
-					site = shrtdist(rnd);
-				}
-				dnstate[site] = 1;
-			}
-			Config* Conf = new Config(upstate, dnstate);
-			return Conf;
-		}
-		// PropMove will move a fermion from one site to another, spin agnostic.
-		Diff PropMove(Config* Cfg) const
-		{
-			vector<int> state(Cfg->FullCfg());
-			uniform_int_distribution<int> longdist(0, 2*N - 1);
-			random_device rd;
-			std::default_random_engine rnd(rd());
-			Diff diff;
-			diff.num = 2; // Two site occupations are altered.
-			diff.val.resize(2);
-			diff.val[0] = -1; diff.val[1] = 1;
-			diff.pos.resize(2);
-			diff.pos[0] = longdist(rnd);
-			diff.pos[1] = longdist(rnd);
-			while (state[diff.pos[0]] == 0) // Ensure starting location is occupied.
-			{
-				diff.pos[0] = longdist(rnd);
-			}
-			while (state[diff.pos[1]] == 1) // Ensure destination is not occupied.
-			{
-				diff.pos[1] = longdist(rnd);
-			}
-			int nswap = 0; // Counter for operator swaps invoked with this move.
-			int site1 = min(diff.pos[0], diff.pos[1]);
-			int site2 = max(diff.pos[0], diff.pos[1]);
-			for (int i = site1; i < site2; i++)
-			{
-				nswap += state[i];
-			}
-			diff.sign = 1 - 2 * (nswap % 2);
-			return diff;
-		}
-		Config* Diff2Cfg(Config* Cfg, Diff diff) const
-		{
-			vector<int> state(Cfg->FullCfg());
-			for (int d = 0; d < diff.num; d++)
-			{
-				state[diff.pos[d]] += diff.val[d];
-			}
-			vector<int> upstate;
-			vector<int> dnstate;
-			upstate.resize(N);
-			dnstate.resize(N);
-			for (int i = 0; i < N; i++)
-			{
-				upstate[i] = state[i];
-				dnstate[i] = state[i + N];
-			}
-			Config* NewConf = new Config(upstate, dnstate);
-			return NewConf;
-		}
+		// - FermFN::RandomCfg will generate a configuration with the specified start population.
+		Config* RandomCfg() const;
+		// - FermFN::PropMove will move a fermion from one site to another, spin agnostic.
+		Diff PropMove(Config* Cfg) const;
+		// - Diff2Cfg inherited from GeneralFerm.
 	};
 
 	class FermFZ : public GeneralFerm // Subclass for fixed total number and spin.
@@ -282,129 +83,18 @@ namespace nqsvmc
 		int N_dn; // Number of down fermions.
 	public:
 		// Constructor for the variable number Ferm Hilbert subclass.
-		FermFZ(int size, int nferm, int sztot)
-		{
-			if (abs(sztot) > nferm)
-			{
-				cerr << "Desired spin projection is larger than permitted by fermion number." << endl;
-				std::abort();
-			}
-			if (nferm > 2 * size)
-			{
-				cerr << "Number of fermions is larger than permitted by system size." << endl;
-				std::abort();
-			}
-			if ((nferm % 2) != (sztot % 2))
-			{
-				cerr << "Desired fermion count and spin projection are incompatible." << endl;
-				std::abort();
-			}
-			if (size <= 0)
-			{
-				cerr << "Invalid system size." << endl;
-				std::abort();
-			}
-			N = nferm;
-			N_up = (nferm + sztot) / 2;
-			N_dn = (nferm - sztot) / 2;
-		}
-		// Observer functions:
-		int SiteDim() const
-		{
-			return 4;
-		}
-		int SysSize() const
-		{
-			return N;
-		}
+		FermFZ(int size, int nferm, int sztot);
+		// Observer functions need to be overwritten here to access subclass properties.
+		// - SiteDim returns the single site local dimension of the Hilbert space.
+		int SiteDim() const;
+		// - SysSize returns the number of sites in the system.
+		int SysSize() const;
 		// Configuration manipulation functions:
-		// - RandomCfg will generate a configuration with the populations specified in Hilbert.
-		Config* RandomCfg() const
-		{
-			vector<int> upstate{ 0 }, dnstate{ 0 };
-			uniform_int_distribution<int> shrtdist(0, N - 1);
-			random_device rd;
-			std::default_random_engine rnd(rd());
-			upstate.resize(N);
-			dnstate.resize(N);
-			int site;
-			for (int i = 0; i < N_up; i++)
-			{
-				site = shrtdist(rnd);
-				while (upstate[site] == 1) // Ensure target site is not already populated.
-				{
-					site = shrtdist(rnd);
-				}
-				upstate[site] = 1;
-			}
-			for (int j = 0; j < N_dn; j++)
-			{
-				site = shrtdist(rnd);
-				while (dnstate[site] == 1) // Ensure target site is not already populated.
-				{
-					site = shrtdist(rnd);
-				}
-				dnstate[site] = 1;
-			}
-			Config* Conf = new Config(upstate, dnstate);
-			return Conf;
-		}
-		// - PropMove will move a fermion from one site to another, spin specific.
-		Diff PropMove(Config* Cfg) const
-		{
-			vector<int> state(Cfg->FullCfg());
-			uniform_int_distribution<int> longdist(0, 2*N - 1);
-			uniform_int_distribution<int> shrtdist(0, N - 1);
-			random_device rd;
-			std::default_random_engine rnd(rd());
-			Diff diff;
-			diff.num = 2; // Two site occupations are altered.
-			diff.val.resize(2);
-			diff.val[0] = -1; diff.val[1] = 1;
-			diff.pos[0] = longdist(rnd);
-			while (state[diff.pos[0]] == 0) // Ensure starting location is occupied.
-			{
-				diff.pos[0] = longdist(rnd);
-			}
-			int smod = 0;
-			if (diff.pos[0] > N)
-			{
-				smod = N;
-			}
-			diff.pos[1] = shrtdist(rnd) + smod;
-			while (state[diff.pos[1]] == 1)
-			{
-				diff.pos[1] = shrtdist(rnd) + smod;
-			}
-			int nswap = 0; // Counter for operator swaps invoked with this move.
-			int site1 = min(diff.pos[0], diff.pos[1]);
-			int site2 = max(diff.pos[0], diff.pos[1]);
-			for (int i = site1; i < site2; i++) // Sum over occupied sites between the two positions.
-			{
-				nswap += state[i];
-			}
-			diff.sign = 1 - 2 * (nswap % 2);
-			return diff;
-		}
-		Config* Diff2Cfg(Config* Cfg, Diff diff) const
-		{
-			vector<int> state(Cfg->FullCfg());
-			for (int d = 0; d < diff.num; d++)
-			{
-				state[diff.pos[d]] += diff.val[d];
-			}
-			vector<int> upstate;
-			vector<int> dnstate;
-			upstate.resize(N);
-			dnstate.resize(N);
-			for (int i = 0; i < N; i++)
-			{
-				upstate[i] = state[i];
-				dnstate[i] = state[i + N];
-			}
-			Config* NewConf = new Config(upstate, dnstate);
-			return NewConf;
-		}
+		// - FermFZ::RandomCfg will generate a configuration with the specified start population.
+		Config* RandomCfg() const;
+		// - FermFZ::PropMove will move a fermion from one site to another, spin specific.
+		Diff PropMove(Config* Cfg) const;
+		// - Diff2Cfg inherited from GeneralFerm.
 	};
 }
 #endif

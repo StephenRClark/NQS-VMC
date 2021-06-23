@@ -122,7 +122,7 @@ namespace nqsvmc
 		{
 			diff = hb_->PropMove(cfg);
 			Ratio = AnsObj->PsiRatio(diff);
-			TProb = pow(Ratio, 2);
+			TProb = pow(Ratio, 2)*diff.tfac;
 			R = randdist(rndgen);
 			if (R < TProb)
 			{
@@ -136,7 +136,7 @@ namespace nqsvmc
 			{
 				diff = hb_->PropMove(cfg);
 				Ratio = AnsObj->PsiRatio(diff);
-				TProb = pow(Ratio, 2);
+				TProb = pow(Ratio, 2)*diff.tfac;
 				R = randdist(rndgen);
 				if (R < TProb)
 				{
@@ -193,7 +193,7 @@ namespace nqsvmc
 		{
 			diff = hb_->PropMove(cfg);
 			Ratio = AnsObj->PsiRatio(diff);
-			TProb = pow(Ratio, 2);
+			TProb = pow(Ratio, 2)*diff.tfac;
 			R = randdist(rndgen);
 			if (R < TProb)
 			{
@@ -207,7 +207,7 @@ namespace nqsvmc
 			{
 				diff = hb_->PropMove(cfg);
 				Ratio = AnsObj->PsiRatio(diff);
-				TProb = pow(Ratio, 2);
+				TProb = pow(Ratio, 2)*diff.tfac;
 				R = randdist(rndgen);
 				if (R < TProb)
 				{

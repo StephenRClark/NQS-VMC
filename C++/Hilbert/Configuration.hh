@@ -21,6 +21,7 @@ namespace nqsvmc
 		vector<int> pos; // - Vector of lattice site position indices.
 		vector<int> val; // - Vector of local operator value differences.
 		int sign; // - Sign change associated with the difference - normally 1, only relevant for fermions.
+		double tfac; // - Trial probability factor - needed for some proposed moves.
 	};
 
 	class Configuration // - The overarching parent class for all configurations.

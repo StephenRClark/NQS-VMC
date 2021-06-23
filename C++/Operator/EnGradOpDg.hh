@@ -20,75 +20,34 @@ namespace nqsvmc
 	class EneLogDeriv_OpDg : public GeneralOperatorDg // Used for stochastic reconfiguration.
 	{
 	public:
-	// No properties - only need an empty constructor.
-		EneLogDeriv_OpDg() 
-		{ }
-		MatrixXd LocalSample(Config* Cfg, double EnLoc, VectorXd dLogp, Ansatz* AnsObj) const
-		{
-			VectorXd EdP = dLogp * EnLoc;
-			return EdP;
-		}
-		MatrixXd LocalSample(Config* Cfg, Ansatz* AnsObj) const // This probably won't ever get called.
-		{
-			VectorXd EdP = VectorXd::Zero(1);
-			return EdP;
-		}
+		// No properties - only need an empty constructor.
+		EneLogDeriv_OpDg();
+		MatrixXd LocalSample(Config* Cfg, double EnLoc, VectorXd dLogp, Ansatz* AnsObj) const;
+		MatrixXd LocalSample(Config* Cfg, Ansatz* AnsObj) const; // This probably won't ever get called.
 		// Shouldn't need to invoke GraphSample, but in the event it is, it returns the same result.
-		MatrixXd GraphSample(Config* Cfg, double EnLoc, VectorXd dLogp, Ansatz* AnsObj) const
-		{
-			VectorXd EdP = dLogp * EnLoc;
-			return EdP;
-		}
+		MatrixXd GraphSample(Config* Cfg, double EnLoc, VectorXd dLogp, Ansatz* AnsObj) const;
 	};
 
 	class LogLogDeriv_OpDg : public GeneralOperatorDg // Used for stochastic reconfiguration.
 	{
 	public:
 		// No properties - only need an empty constructor.
-		LogLogDeriv_OpDg()
-		{ }
-		MatrixXd LocalSample(Config* Cfg, double EnLoc, VectorXd dLogp, Ansatz* AnsObj) const
-		{
-			MatrixXd dPdQ = dLogp * dLogp.transpose();
-			return dPdQ;
-		}
-		MatrixXd LocalSample(Config* Cfg, Ansatz* AnsObj) const // This probably won't ever get called.
-		{
-			VectorXd dPdQ = VectorXd::Zero(1);
-			return dPdQ;
-		}
+		LogLogDeriv_OpDg();
+		MatrixXd LocalSample(Config* Cfg, double EnLoc, VectorXd dLogp, Ansatz* AnsObj) const;
+		MatrixXd LocalSample(Config* Cfg, Ansatz* AnsObj) const; // This probably won't ever get called.
 		// Shouldn't need to invoke GraphSample, but in the event it is, it returns the same result.
-		MatrixXd GraphSample(Config* Cfg, double EnLoc, VectorXd dLogp, Ansatz* AnsObj) const
-		{
-			MatrixXd dPdQ = dLogp * dLogp.transpose();
-			return dPdQ;
-		}
+		MatrixXd GraphSample(Config* Cfg, double EnLoc, VectorXd dLogp, Ansatz* AnsObj) const;
 	};
 
 	class EneSq_OpDg : public GeneralOperatorDg // Used for stochastic reconfiguration.
 	{
 	public:
 		// No properties - only need an empty constructor.
-		EneSq_OpDg()
-		{ }
-		MatrixXd LocalSample(Config* Cfg, double EnLoc, VectorXd dLogp, Ansatz* AnsObj) const
-		{
-			MatrixXd Esq = MatrixXd::Zero(1, 1);
-			Esq(0) = pow(EnLoc,2);
-			return Esq;
-		}
-		MatrixXd LocalSample(Config* Cfg, Ansatz* AnsObj) const // This probably won't ever get called.
-		{
-			MatrixXd Esq = MatrixXd::Zero(1, 1);
-			return Esq;
-		}
+		EneSq_OpDg();
+		MatrixXd LocalSample(Config* Cfg, double EnLoc, VectorXd dLogp, Ansatz* AnsObj) const;
+		MatrixXd LocalSample(Config* Cfg, Ansatz* AnsObj) const; // This probably won't ever get called.
 		// Primary use case - only used for EvalSample.
-		MatrixXd GraphSample(Config* Cfg, double EnLoc, VectorXd dLogp, Ansatz* AnsObj) const
-		{
-			MatrixXd Esq = MatrixXd::Zero(1, 1);
-			Esq(0) = pow(EnLoc, 2);
-			return Esq;
-		}
+		MatrixXd GraphSample(Config* Cfg, double EnLoc, VectorXd dLogp, Ansatz* AnsObj) const;
 	};
 }
 

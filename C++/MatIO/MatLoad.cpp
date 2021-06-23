@@ -277,7 +277,7 @@ namespace nqsvmc
 		{
 			Nb = (int)mxGetPr(fieldptr)[0]; // Sector sets the number of bosons if not empty.
 			h_ = new Hilbert(N, Nb, Nmax, true); // Gives a Hilbert containing a BoseFN subclass pointer.
-		}		
+		}
 		return h_;
 	}
 	// FermConstruct will take a Ferm Hilbert from Matlab (identified in HilbertConstruct) and give the C++ equivalent.
@@ -431,8 +431,6 @@ namespace nqsvmc
 			cerr << "Unable to construct appropriate Hilbert object - check struct fields match." << endl;
 			std::abort();
 		}
-		cout << "New Hilbert constructed successfully." << endl;
-
 		return hlb;
 	}
 
@@ -976,10 +974,12 @@ namespace nqsvmc
 		fieldname = "Hilbert";
 		matvar = FindField(structptr, fieldname);
 		Hilbert* hlb = HilbertConstruct(matvar); // Use generated Hilbert to initialise Reference.
+		cout << "Ansatz Hilbert constructed successfully." << endl;
 		fieldname = "Reference";
 		matvar = FindField(structptr, fieldname); 
 		// Reference and Hilbert must be compatible in Matlab code, so shouldn't run into issues using Hilbert here.
 		Reference* ref = ReferenceConstruct(matvar, hlb);
+		cout << "Ansatz Reference constructed successfully." << endl;
 		fieldname = "Modifier";
 		matvar = FindField(structptr, fieldname);
 		size_t nummod = mxGetNumberOfElements(matvar);// Operators will be in a cell array.
@@ -990,6 +990,7 @@ namespace nqsvmc
 			cellvar = mxGetCell(matvar, o);
 			mod[o] = ModifierConstruct(cellvar,hlb);
 		}
+		cout << "Ansatz Modifiers constructed successfully." << endl;
 		Ansatz* ans = new Ansatz(ref,mod,hlb);
 		return ans;
 	}

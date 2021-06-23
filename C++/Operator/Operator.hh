@@ -30,7 +30,7 @@ namespace nqsvmc
 		// No implementation of CorrMatEls or RWMatEls - those are only required for Operator composition.
 	};
 
-	// Forward declaration of implementer subclass:
+	// Definition of implementer subclass:
 	class Operator : public GeneralOperator
 	{
 	private:

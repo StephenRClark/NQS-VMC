@@ -29,108 +29,31 @@ namespace nqsvmc
 		vector<int> SLInds; // List of sublattice indices - N entries.
 	public:
 		// Constructor functions:
-		// - Constructor with proper inputs (dimensions, vectors and boundary condition):
-		HypCub(vector<int> dimensions, vector<vector<int>> vectors, vector<int> boundcon)
-		{
-			Dim = dimensions;
-			N = 1;
-			for (int d = 0; d < dimensions.size(); d++)
-			{
-				N *= dimensions[d];
-			}
-			z = 2 * (int)dimensions.size();
-			LVecs = vectors;
-			if (dimensions.size() != boundcon.size())
-			{
-				cerr << "Number of boundary conditions does not match number of dimensions." << endl;
-				std::abort();
-			}
-			Bound = boundcon;
-			Bonds = BondGen(dimensions, vectors, boundcon);
-			BondMapGen(dimensions, vectors, Bonds, &VInds, &BondMap);
-			Ntr = (int)BondMap.size();
-			SLInds.resize(N);
-			for (int n = 0; n < N; n++)
-			{
-				SLInds[n] = 1;
-			}
-		}
+		// - HypCub constructor with full inputs (dimensions, vectors and boundary condition):
+		HypCub(vector<int> dimensions, vector<vector<int>> vectors, vector<int> boundcon);
 		// Observer functions for extracting information from a general Graph object
 		// - Nsite will return the number of sites in the lattice.
-		int Nsite() const
-		{
-			return N;
-		}
+		int Nsite() const;
 		// - GraphDim will return the dimensions defined in the Graph.
-		vector<int> GraphDim() const
-		{
-			return Dim;
-		}
+		vector<int> GraphDim() const;
 		// - Ntranslate will return the number of lookup lists defined in Graph for different translations.
-		int Ntranslate() const
-		{
-			return Ntr;
-		}
+		int Ntranslate() const;
 		// - Nvecs will return the number of primitive lattice vectors defined in the Graph.
-		int Nvecs() const
-		{
-			return (int)LVecs.size();
-		}
+		int Nvecs() const;
 		// - Coord will return the coordination number of the lattice.
-		int Coord() const
-		{
-			return z;
-		}
+		int Coord() const;
 		// - LatVec returns one of the lattice vectors defined in the Graph, depending on the input index value.
-		vector<int> LatVec(int index) const
-		{
-			if ((index >= LVecs.size()) || (index < 0))
-			{
-				cerr << "Invalid vector index. Use Nvecs to determine the number of principal lattice vectors." << endl;
-				std::abort();
-			}
-			return LVecs[index];
-		}
+		vector<int> LatVec(int index) const;
 		// - VecInd returns the lattice vector coefficients associated with the input translation index.
-		vector<int> VecInd(int index) const
-		{
-			if ((index >= LVecs.size()) || (index < 0))
-			{
-				cerr << "Invalid vector index. Use Nvecs to determine the number of principal lattice vectors." << endl;
-				std::abort();
-			}
-			return VInds[index];
-		}
+		vector<int> VecInd(int index) const;
 		// - BondMap returns the lookup list associated with the input translation index.
-		vector<int> BondSearch(int index) const
-		{
-			if ((index > Ntr) || (index < 0))
-			{
-				cerr << "Invalid translation index. Use Ntr to determine the number of distinct translations." << endl;
-				std::abort();
-			}
-			return BondMap[index];
-		}
-		// - Bonds returns the primary neighbour lookup list associated with the Graph.
-		vector<vector<int>> BondRead() const
-		{
-			return Bonds;
-		}
+		vector<int> BondSearch(int index) const;
+		// - BondRead returns the primary neighbour lookup list associated with the Graph.
+		vector<vector<int>> BondRead() const;
 		// - SLRead returns the stored sublattice indices associated with the sites in Graph.
-		vector<int> SLRead() const
-		{
-			return SLInds;
-		}
+		vector<int> SLRead() const;
 		// - SLLoad alters the existing sublattice indices associated with the sites in Graph.
-		void SLLoad(vector<int> indices)
-		{
-			if (indices.size() != N)
-			{
-				cerr << "Input vector does not have the correct number of entries." << endl;
-				std::abort();
-			}
-			swap(indices, SLInds);
-		}
+		void SLLoad(vector<int> indices);
 	};
 }
 

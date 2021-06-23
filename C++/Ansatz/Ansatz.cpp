@@ -1,5 +1,5 @@
 // ------------------------------------------------------------------------------------------------------------
-// Ansatz.cpp - contains the definitions of the Ansatz object class, outlining its interactions with the Config
+// Ansatz.cpp - contains the functions of the Ansatz object class, outlining its interactions with the Config
 //			    type of object. The Ansatz class contains all the methods of calculating wavefunction 
 //			    properties such as amplitudes and parameter derivatives. Within the Ansatz is a Reference 
 //			    object and some number of Modifier objects, and the methods in Ansatz will call the methods of 
@@ -34,22 +34,22 @@ namespace nqsvmc
 	}
 
 	// Observer functions for extracting information from an Ansatz object:
-	// - NumVar returns the number of variational components in the Ansatz.
+	// - Ansatz::NumVar returns the number of variational components in the Ansatz.
 	int Ansatz::NumVar() const
 	{
 		return Nvar;
 	}
-	// - Nparam returns the number of variational parameters in the Ansatz.
+	// - Ansatz::Nparam returns the number of variational parameters in the Ansatz.
 	int Ansatz::Nparam() const
 	{
 		return NpTotal;
 	}
-	// - Nmod returns the number of Modifiers.
+	// - Ansatz::Nmod returns the number of Modifiers.
 	int Ansatz::Nmod() const
 	{
 		return (int)m_.size();
 	}
-	// - ParamList will return a vector of parameters in the ansatz from References and Modifiers.
+	// - Ansatz::ParamList will return a vector of parameters in the ansatz from References and Modifiers.
 	VectorXd Ansatz::ParamList() const
 	{
 		VectorXd P = VectorXd::Zero(NpTotal);
@@ -89,7 +89,7 @@ namespace nqsvmc
 	}
 
 	// Variational management functions:
-	// - RndBtcSelect will randomly select parameters within the Ansatz components.
+	// - Ansatz::RndBtcSelect will randomly select parameters within the Ansatz components.
 	// -- First version with no specified batch fraction.
 	void Ansatz::RndBtcSelect()
 	{
@@ -140,7 +140,7 @@ namespace nqsvmc
 		}
 		return;
 	}
-	// - PsiUpdate will update the variational parameters of the wavefunction when given a vector of changes.
+	// - Ansatz::PsiUpdate will update the variational parameters of the wavefunction when given a vector of changes.
 	void Ansatz::PsiUpdate(VectorXd dP)
 	{
 		ParamCheck(dP);
@@ -180,7 +180,7 @@ namespace nqsvmc
 		}
 		return;
 	}
-	// - ParamLoad will overwrite the variatonal parameters of the wavefunction when given a vector of parameters.
+	// - Ansatz::ParamLoad will overwrite the variatonal parameters of the wavefunction when given a vector of parameters.
 	void Ansatz::ParamLoad(VectorXd P)
 	{
 		ParamCheck(P);
@@ -225,7 +225,7 @@ namespace nqsvmc
 		}
 		return;
 	}
-	// - OptIndLoad will overwrite the variatonal parameters of the wavefunction when given a vector of parameters.
+	// - Ansatz::OptIndLoad will overwrite the variatonal parameters of the wavefunction when given a vector of parameters.
 	void Ansatz::OptIndLoad(VectorXd newinds)
 	{
 		ParamCheck(newinds);
@@ -270,7 +270,7 @@ namespace nqsvmc
 		}
 		return;
 	}
-	// - PrepPsi will load any local configuration information used in the wavefunction constituents.
+	// - Ansatz::PrepPsi will load any local configuration information used in the wavefunction constituents.
 	void Ansatz::PrepPsi(Config* Cfg)
 	{
 		r_->PrepPsi(Cfg);
@@ -280,7 +280,7 @@ namespace nqsvmc
 		}
 		return;
 	}
-	// - PsiCfgUpdate will update any local configuration information after a configuration change.
+	// - Ansatz::PsiCfgUpdate will update any local configuration information after a configuration change.
 	void Ansatz::PsiCfgUpdate()
 	{
 		r_->PsiCfgUpdate();
@@ -292,7 +292,7 @@ namespace nqsvmc
 	}
 	// Proposed local information changes contained within each Modifier.
 	// If required later, will also have PsiCfgUpdateExt which uses an external local information source.
-	// - PsiRatio will return the ratio of two amplitudes when supplied the configuration difference and the
+	// - Ansatz::PsiRatio will return the ratio of two amplitudes when supplied the configuration difference and the
 	// -- appropriate local information for one configuration loaded into the Ansatz.
 	double Ansatz::PsiRatio(Diff diff)
 	{
@@ -309,7 +309,7 @@ namespace nqsvmc
 		return Ratio;
 	}
 	// If required later, will also have PsiRatioExt which loads local information to an external object.
-	// - LogDeriv will return the logarithmic derivatives of the wavefunction w.r.t. its parameters.
+	// - Ansatz::LogDeriv will return the logarithmic derivatives of the wavefunction w.r.t. its parameters.
 	VectorXd Ansatz::LogDeriv(Config* Cfg)
 	{
 		VectorXd dP = VectorXd::Zero(NpTotal);

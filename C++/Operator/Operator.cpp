@@ -1,5 +1,5 @@
 // ------------------------------------------------------------------------------------------------------------
-// Operator.cpp - contains the definitions of the Operator object class. Operators provide the methods for
+// Operator.cpp - contains the functions of the Operator object class. Operators provide the methods for
 //				  calculating physical properties when provided a configuration and a wavefunction.
 // ------------------------------------------------------------------------------------------------------------
 

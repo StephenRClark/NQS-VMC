@@ -14,7 +14,104 @@ using namespace Eigen;
 
 namespace nqsvmc
 {
-	// Defining some GeneralGraph helper functions:
+	// Constructors for the Graph wrapper class:
+	// - Generate a HypCub subclass instance.
+	Graph::Graph(vector<int> dim, vector<vector<int>> lvecs, vector<int> bound, char ID)
+	{
+		if (ID == 'c') // 'c' denotes a hypercube
+		{
+			g_ = new HypCub(dim, lvecs, bound);
+		}
+		// To add - honeycomb (h), triangular (t).
+	}
+	// - Custom construction with premade lookup lists.
+	Graph::Graph(vector<int> dim, vector<vector<int>> lvecs, vector<int> bound, vector<vector<int>> bonds,
+		vector<int> slinds, bool bondmapflag)
+	{
+		// If provided the full set of information, generates a CustomGraph.
+		g_ = new CustomGraph(dim, lvecs, bound, bonds, slinds, bondmapflag);
+	}
+	// Observer functions for extracting information from a general Graph object
+	// - Nsite will return the number of sites in the lattice.
+	int Graph::Nsite() const
+	{
+		return g_->Nsite();
+	}
+	// - GraphDim will return the dimensions defined in the Graph.
+	vector<int> Graph::GraphDim() const
+	{
+		return g_->GraphDim();
+	}
+	// - Ntranslate will return the number of lookup lists defined in Graph for different translations.
+	int Graph::Ntranslate() const
+	{
+		return g_->Ntranslate();
+	}
+	// - Nvecs will return the number of primitive lattice vectors defined in the Graph.
+	int Graph::Nvecs() const
+	{
+		return g_->Nvecs();
+	}
+	// - Coord will return the coordination of the lattice.
+	int Graph::Coord() const
+	{
+		return g_->Coord();
+	}
+	// - LatVec returns one of the lattice vectors defined in the Graph, depending on the input index value.
+	vector<int> Graph::LatVec(int index) const
+	{
+		return g_->LatVec(index);
+	}
+	// - VecInd returns the lattice vector coefficients associated with the input translation index.
+	vector<int> Graph::VecInd(int index) const
+	{
+		return g_->VecInd(index);
+	}
+	// - BondSearch returns the lookup list associated with the input translation index.
+	vector<int> Graph::BondSearch(int index) const
+	{
+		return g_->BondSearch(index);
+	}
+	// - BondRead returns the primary neighbour lookup list associated with the Graph.
+	vector<vector<int>> Graph::BondRead() const
+	{
+		return g_->BondRead();
+	}
+	// - SLRead returns the stored sublattice indices associated with the sites in Graph.
+	vector<int> Graph::SLRead() const
+	{
+		return g_->SLRead();
+	}
+	// - SLLoad alters the existing sublattice indices associated with the sites in Graph.
+	void Graph::SLLoad(vector<int> indices)
+	{
+		return g_->SLLoad(indices);
+	}
+	// - Graph2Matrix outputs an Eigen matrix of connections using primary bonds.
+	MatrixXd Graph::Graph2Matrix() const
+	{
+		int N = g_->Nsite();
+		int Nb = g_->Nvecs();
+		MatrixXd ConMat = MatrixXd::Zero(N, N);
+		vector<vector<int>> Bonds = g_->BondRead();
+		for (int b = 0; b < Nb; b++)
+		{
+			for (int n = 0; n < N; n++)
+			{
+				int Site = Bonds[b][n];
+				if (Site >= 0)
+				{
+					ConMat(n, Site) = 1;
+					ConMat(Site, n) = 1;
+				}
+			}
+		}
+		return ConMat;
+	}
+
+	// <<<<<<------------ GeneralGraph functions ------------>>>>>>
+
+	// BondGen outputs a nested vector list of site links, format is link = [vector index][site]
 	vector<vector<int>> GeneralGraph::BondGen(vector<int> dim, vector<vector<int>> lvecs, vector<int> bound)
 	{
 		vector<vector<int>> Bonds;
@@ -73,6 +170,7 @@ namespace nqsvmc
 		return Bonds;
 	}
 
+	// BondMapGen populates the BondMap field of a general Graph, for a full connectivity list.
 	void GeneralGraph::BondMapGen(vector<int> dim, vector<vector<int>> lvecs, vector<vector<int>> bonds,
 		vector<vector<int>>* vecinds, vector<vector<int>>* bondmap)
 	{ // Given some principal lattice vectors and associated lookup tables, will create a full lookup list.
@@ -180,97 +278,215 @@ namespace nqsvmc
 		return;
 	}
 
-	Graph::Graph(vector<int> dim, vector<vector<int>> lvecs, vector<int> bound, char ID)
+	
+
+	// Definitions for Graph subclass functions here:
+
+	// <<<<<<------------ HypCub functions ------------>>>>>>
+
+	// - HypCub constructor with all inputs (dimensions, vectors and boundary condition):
+	HypCub::HypCub(vector<int> dimensions, vector<vector<int>> vectors, vector<int> boundcon)
 	{
-		if (ID == 'c') // 'c' denotes a hypercube
+		Dim = dimensions;
+		N = 1;
+		for (int d = 0; d < dimensions.size(); d++)
 		{
-			g_ = new HypCub(dim, lvecs, bound);
+			N *= dimensions[d];
 		}
-		// To add - honeycomb (h), triangular (t).
-	}
-	// - Custom construction with premade lookup lists.
-	Graph::Graph(vector<int> dim, vector<vector<int>> lvecs, vector<int> bound, vector<vector<int>> bonds,
-		vector<int> slinds, bool bondmapflag)
-	{
-		// If provided the full set of information, generates a CustomGraph.
-		g_ = new CustomGraph(dim, lvecs, bound, bonds, slinds, bondmapflag);
-	}
-	// Observer functions for extracting information from a general Graph object
-	// - Nsite will return the number of sites in the lattice.
-	int Graph::Nsite() const
-	{
-		return g_->Nsite();
-	}
-	// - GraphDim will return the dimensions defined in the Graph.
-	vector<int> Graph::GraphDim() const
-	{
-		return g_->GraphDim();
-	}
-	// - Ntranslate will return the number of lookup lists defined in Graph for different translations.
-	int Graph::Ntranslate() const
-	{
-		return g_->Ntranslate();
-	}
-	// - Nvecs will return the number of primitive lattice vectors defined in the Graph.
-	int Graph::Nvecs() const
-	{
-		return g_->Nvecs();
-	}
-	// - Coord will return the coordination of the lattice.
-	int Graph::Coord() const
-	{
-		return g_->Coord();
-	}
-	// - LatVec returns one of the lattice vectors defined in the Graph, depending on the input index value.
-	vector<int> Graph::LatVec(int index) const
-	{
-		return g_->LatVec(index);
-	}
-	// - VecInd returns the lattice vector coefficients associated with the input translation index.
-	vector<int> Graph::VecInd(int index) const
-	{
-		return g_->VecInd(index);
-	}
-	// - BondSearch returns the lookup list associated with the input translation index.
-	vector<int> Graph::BondSearch(int index) const
-	{
-		return g_->BondSearch(index);
-	}
-	// - BondRead returns the primary neighbour lookup list associated with the Graph.
-	vector<vector<int>> Graph::BondRead() const
-	{
-		return g_->BondRead();
-	}
-	// - SLRead returns the stored sublattice indices associated with the sites in Graph.
-	vector<int> Graph::SLRead() const
-	{
-		return g_->SLRead();
-	}
-	// - SLLoad alters the existing sublattice indices associated with the sites in Graph.
-	void Graph::SLLoad(vector<int> indices)
-	{
-		return g_->SLLoad(indices);
-	}
-	// - Graph2Matrix outputs an Eigen matrix of connections using primary bonds.
-	MatrixXd Graph::Graph2Matrix() const
-	{
-		int N = g_->Nsite();
-		int Nb = g_->Nvecs();
-		MatrixXd ConMat = MatrixXd::Zero(N, N);
-		vector<vector<int>> Bonds = g_->BondRead();
-		for (int b = 0; b < Nb; b++)
+		z = 2 * (int)dimensions.size();
+		LVecs = vectors;
+		if (dimensions.size() != boundcon.size())
 		{
-			for (int n = 0; n < N; n++)
-			{
-				int Site = Bonds[b][n];
-				if (Site >= 0)
-				{
-					ConMat(n, Site) = 1;
-					ConMat(Site, n) = 1;
-				}
-			}
+			cerr << "Number of boundary conditions does not match number of dimensions." << endl;
+			std::abort();
 		}
-		return ConMat;
+		Bound = boundcon;
+		Bonds = BondGen(dimensions, vectors, boundcon);
+		BondMapGen(dimensions, vectors, Bonds, &VInds, &BondMap);
+		Ntr = (int)BondMap.size();
+		SLInds.resize(N);
+		for (int n = 0; n < N; n++)
+		{
+			SLInds[n] = 1;
+		}
+	}
+	// - HypCub::Nsite will return the number of sites in the lattice.
+	int HypCub::Nsite() const
+	{
+		return N;
+	}
+	// - HypCub::GraphDim will return the dimensions defined in the Graph.
+	vector<int> HypCub::GraphDim() const
+	{
+		return Dim;
+	}
+	// - HypCub::Ntranslate will return the number of lookup lists defined in Graph for different translations.
+	int HypCub::Ntranslate() const
+	{
+		return Ntr;
+	}
+	// - HypCub::Nvecs will return the number of primitive lattice vectors defined in the Graph.
+	int HypCub::Nvecs() const
+	{
+		return (int)LVecs.size();
+	}
+	// - HypCub::Coord will return the coordination number of the lattice.
+	int HypCub::Coord() const
+	{
+		return z;
+	}
+	// - HypCub::LatVec returns one of the lattice vectors defined in the Graph, depending on the input index value.
+	vector<int> HypCub::LatVec(int index) const
+	{
+		if ((index >= LVecs.size()) || (index < 0))
+		{
+			cerr << "Invalid vector index. Use Nvecs to determine the number of principal lattice vectors." << endl;
+			std::abort();
+		}
+		return LVecs[index];
+	}
+	// - HypCub::VecInd returns the lattice vector coefficients associated with the input translation index.
+	vector<int> HypCub::VecInd(int index) const
+	{
+		if ((index >= LVecs.size()) || (index < 0))
+		{
+			cerr << "Invalid vector index. Use Nvecs to determine the number of principal lattice vectors." << endl;
+			std::abort();
+		}
+		return VInds[index];
+	}
+	// - HypCub::BondMap returns the lookup list associated with the input translation index.
+	vector<int> HypCub::BondSearch(int index) const
+	{
+		if ((index > Ntr) || (index < 0))
+		{
+			cerr << "Invalid translation index. Use Ntr to determine the number of distinct translations." << endl;
+			std::abort();
+		}
+		return BondMap[index];
+	}
+	// - HypCub::BondRead returns the primary neighbour lookup list associated with the Graph.
+	vector<vector<int>> HypCub::BondRead() const
+	{
+		return Bonds;
+	}
+	// - HypCub::SLRead returns the stored sublattice indices associated with the sites in Graph.
+	vector<int> HypCub::SLRead() const
+	{
+		return SLInds;
+	}
+	// - HypCub::SLLoad alters the existing sublattice indices associated with the sites in Graph.
+	void HypCub::SLLoad(vector<int> indices)
+	{
+		if (indices.size() != N)
+		{
+			cerr << "Input vector does not have the correct number of entries." << endl;
+			std::abort();
+		}
+		swap(indices, SLInds);
+	}
+
+	// <<<<<<------------ CustomGraph functions ------------>>>>>>
+	// - Constructor with full inputs (dimensions, vectors and boundary condition):
+	CustomGraph::CustomGraph(vector<int> dimensions, vector<vector<int>> vectors, vector<int> boundcon, vector<vector<int>> bonds,
+		vector<int> sublatinds, bool bondmapflag)
+	{
+		Dim = dimensions;
+		N = 1;
+		for (int d = 0; d < dimensions.size(); d++)
+		{
+			N *= dimensions[d];
+		}
+		z = 2 * (int)dimensions.size();
+		LVecs = vectors;
+		if (dimensions.size() != boundcon.size())
+		{
+			cerr << "Number of boundary conditions does not match number of dimensions." << endl;
+			std::abort();
+		}
+		Bound = boundcon;
+		Bonds = bonds;
+		if (bondmapflag)
+		{
+			BondMapGen(dimensions, vectors, Bonds, &VInds, &BondMap);
+		}
+		Ntr = (int)BondMap.size();
+		SLInds = sublatinds;
+	}
+	// - CustomGraph::Nsite will return the number of sites in the lattice.
+	int CustomGraph::Nsite() const
+	{
+		return N;
+	}
+	// - CustomGraph::GraphDim will return the dimensions defined in the Graph.
+	vector<int> CustomGraph::GraphDim() const
+	{
+		return Dim;
+	}
+	// - CustomGraph::Ntranslate will return the number of lookup lists defined in Graph for different translations.
+	int CustomGraph::Ntranslate() const
+	{
+		return Ntr;
+	}
+	// - CustomGraph::Nvecs will return the number of primitive lattice vectors defined in the Graph.
+	int CustomGraph::Nvecs() const
+	{
+		return (int)LVecs.size();
+	}
+	// - CustomGraph::Coord will return the coordination number of the lattice.
+	int CustomGraph::Coord() const
+	{
+		return z;
+	}
+	// - CustomGraph::LatVec returns one of the lattice vectors defined in the Graph, depending on the input index value.
+	vector<int> CustomGraph::LatVec(int index) const
+	{
+		if ((index >= LVecs.size()) || (index < 0))
+		{
+			cerr << "Invalid vector index. Use Nvecs to determine the number of principal lattice vectors." << endl;
+			std::abort();
+		}
+		return LVecs[index];
+	}
+	// - CustomGraph::VecInd returns the lattice vector coefficients associated with the input translation index.
+	vector<int> CustomGraph::VecInd(int index) const
+	{
+		if ((index >= LVecs.size()) || (index < 0))
+		{
+			cerr << "Invalid vector index. Use Nvecs to determine the number of principal lattice vectors." << endl;
+			std::abort();
+		}
+		return VInds[index];
+	}
+	// - CustomGraph::BondMap returns the lookup list associated with the input translation index.
+	vector<int> CustomGraph::BondSearch(int index) const
+	{
+		if ((index > Ntr) || (index < 0))
+		{
+			cerr << "Invalid translation index. Use Ntr to determine the number of distinct translations." << endl;
+			std::abort();
+		}
+		return BondMap[index];
+	}
+	// - CustomGraph::BondRead returns the primary neighbour lookup list associated with the Graph.
+	vector<vector<int>> CustomGraph::BondRead() const
+	{
+		return Bonds;
+	}
+	// - CustomGraph::SLRead returns the stored sublattice indices associated with the sites in Graph.
+	vector<int> CustomGraph::SLRead() const
+	{
+		return SLInds;
+	}
+	// - CustomGraph::SLLoad alters the existing sublattice indices associated with the sites in Graph.
+	void CustomGraph::SLLoad(vector<int> indices)
+	{
+		if (indices.size() != N)
+		{
+			cerr << "Input vector does not have the correct number of entries." << endl;
+			std::abort();
+		}
+		swap(indices, SLInds);
 	}
 }
 

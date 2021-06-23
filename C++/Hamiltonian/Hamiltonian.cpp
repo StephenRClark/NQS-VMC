@@ -16,6 +16,7 @@ using namespace Eigen;
 namespace nqsvmc
 {
 	// Definitions of functions in Hamiltonian:
+	// Constructor for the Hamiltonian object from parameters and Operators.
 	Hamiltonian::Hamiltonian(vector<double> hp, vector<Operator*> opptrs)
 	{
 		if (hp.size() != opptrs.size())
@@ -26,6 +27,7 @@ namespace nqsvmc
 		HParams = hp;
 		op_ = opptrs;
 	}
+	// EnergySample gives the local energy from the provided Ansatz and Configuration.
 	double Hamiltonian::EnergySample(Config* Cfg, Ansatz* AnsObj)
 	{
 		double EnLoc = 0;

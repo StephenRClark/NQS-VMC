@@ -62,9 +62,7 @@ namespace nqsvmc
 	};
 }
 
-#include "Ansatz/nqshdv.hh"
-#include "Ansatz/nqsmh.hh"
-#include "Ansatz/nqsoh.hh"
+#include "Ansatz/nqs.hh"
 #include "Ansatz/gutz.hh"
 #include "Ansatz/jast.hh"
 #include "Ansatz/mbc.hh"
