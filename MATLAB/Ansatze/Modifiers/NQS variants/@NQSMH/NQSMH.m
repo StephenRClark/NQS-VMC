@@ -84,12 +84,15 @@ classdef NQSMH < Modifier
             elseif nargin == 4
                 obj.VFlag = VFlag;
             end
+            obj.HDim = Params.HDim;
+            if (obj.HDim < 3) || (floor(obj.HDim) ~= obj.HDim)
+                error('Hidden dimension must be an integer no less than 3.');
+            end
             if strcmp(Hilbert.Type,'Ferm')
                 error('Fermionic systems are not currently supported for this Modifier.');
             else
                 obj.Nv = Hilbert.N;
-                obj.FullCfg = Hilbert.FullCfgFunc;
-                obj.HDim = Hilbert.d;
+                obj.FullCfg = Hilbert.FullCfgFunc;                
             end
             if isfield(Params,'Alpha')
                 obj.Nh = Params.Alpha * Hilbert.N;

@@ -59,14 +59,13 @@ if isfield(Params,'B') == 0
     Params.B = Params.b;
 end
 
-NQSObj.ati = Params.a * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
-NQSObj.Ati = Params.A * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
-
+NQSObj.ati = (Params.a + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand);
+NQSObj.Ati = (Params.A + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand);
 for a = 1:Alpha
-    NQSObj.bti(a) = Params.b * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
-    NQSObj.Bti(a) = Params.B * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
+    NQSObj.bti(a) = (Params.b + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand);
+    NQSObj.Bti(a) = (Params.B + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand);
     for n = 1:Nv
-        NQSObj.Wv(a,n) = Params.W * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
+        NQSObj.Wv(a,n) = (Params.W + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand);
     end
 end
 
@@ -91,3 +90,4 @@ for a = 1:Alpha
 end
 
 NQSObj.OptInds = ones(NQSObj.Np,1);
+end

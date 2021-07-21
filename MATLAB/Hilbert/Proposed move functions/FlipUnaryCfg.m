@@ -26,4 +26,5 @@ Diff.pos = [su sd];
 % Adjust up and down lists in Cfg.
 CfgP = Cfg; CfgP.up(ind0) = sd; CfgP.dn(CfgP.dn==sd) = [];
 CfgP.dn = [CfgP.dn(CfgP.dn<su) su CfgP.dn(CfgP.dn>su)];
+Diff.Tfac = 1; % Trial probability in both direction is equal - 1/N*(d-1)
 end

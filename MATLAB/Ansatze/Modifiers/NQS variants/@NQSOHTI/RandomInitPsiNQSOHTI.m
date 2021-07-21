@@ -45,14 +45,14 @@ NQSObj.bti = zeros(Alpha,1);
 NQSObj.Wv = zeros(Alpha,VDim*Nv);
 
 for v = 1:VDim
-    NQSObj.ati(v) = Params.a * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
+    NQSObj.ati(v) = (Params.a + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand)*(Params.a~=0);
 end
 for a = 1:Alpha
-    NQSObj.bti(a) = Params.b * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
+    NQSObj.bti(a) = (Params.b + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand)*(Params.b~=0);
 end
 for a = 1:Alpha
     for v = 1:VDim*Nv
-        NQSObj.Wv(a,v) = Params.W * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
+        NQSObj.Wv(a,v) = (Params.W + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand)*(Params.W~=0);
     end
 end
 

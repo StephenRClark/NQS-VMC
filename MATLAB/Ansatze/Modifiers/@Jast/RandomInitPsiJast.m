@@ -48,7 +48,7 @@ JastObj.Tj = zeros(Nj,1);
 JastObj.JsV = JsV;
 
 for p = 1:JastObj.Np
-    JastObj.JsVar(p) = Params.Js * (1 - Params.nmag + 2*Params.nmag*rand);
+    JastObj.JsVar(p) = (Params.Js + 2*Params.nmag*(rand-0.5))*(Params.Js~=0);
     % * exp(2i*pi*Params.nphs*rand); % Jastrow factors normally real.
 end
 

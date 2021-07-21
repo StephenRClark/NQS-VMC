@@ -30,15 +30,16 @@ NQSObj.W = zeros(Nh,VDim*Nv);
 NQSObj.Theta = zeros(Nh,1);
 
 for v = 1:VDim*Nv
-    NQSObj.a(v) = Params.a * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
+    NQSObj.a(v) = (Params.a + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand)*(Params.a~=0);
 end
 for h=1:Nh
-    NQSObj.b(h) = Params.b * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
+    NQSObj.b(h) = (Params.b + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand)*(Params.b~=0);
 end
 for h = 1:Nh
     for v = 1:VDim*Nv
-        NQSObj.W(h,v) = Params.W * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
+        NQSObj.W(h,v) = (Params.W + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand)*(Params.W~=0);
     end
 end
 
 NQSObj.OptInds = ones(NQSObj.Np,1);
+end

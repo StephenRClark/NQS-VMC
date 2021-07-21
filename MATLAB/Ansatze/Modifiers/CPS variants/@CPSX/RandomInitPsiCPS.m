@@ -31,12 +31,13 @@ CPSObj.b = zeros(Nh,HDim-1);
 CPSObj.W = zeros(VDim-1,HDim-1,Nv,Nh);
 CPSObj.Theta = zeros(Nh,HDim-1);
 for v = 1:(Nv * (VDim-1))
-    CPSObj.a(v) = Params.a * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
+    CPSObj.a(v) = (Params.a + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand)*(Params.a~=0);
 end
 for h=1:(Nh * (HDim-1))
-    CPSObj.b(h) = Params.b * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
+    CPSObj.b(h) = (Params.b + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand)*(Params.b~=0);
 end
 for k = 1:(Nv * Nh * (VDim-1)*(HDim-1))
-    CPSObj.W(k) = Params.W * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
+    CPSObj.W(k) = (Params.W + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand)*(Params.W~=0);
 end
 CPSObj.OptInds = ones(CPSObj.Np,1);
+end

@@ -45,12 +45,12 @@ NQSObj.W = zeros(Nh,Nv);
 NQSObj.Wv = zeros(Alpha,Nv);
 NQSObj.Theta = zeros(Nh,1);
 
-NQSObj.ati = Params.a * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
+NQSObj.ati = (Params.a + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand)*(Params.a~=0);
 
 for a = 1:Alpha
-    NQSObj.bti(a) = Params.b * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
+    NQSObj.bti(a) = (Params.b + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand)*(Params.b~=0);
     for n = 1:Nv
-        NQSObj.Wv(a,n) = Params.W * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
+        NQSObj.Wv(a,n) = (Params.W + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand)*(Params.W~=0);
     end
 end
 
@@ -73,3 +73,4 @@ for a = 1:Alpha
 end
 
 NQSObj.OptInds = ones(NQSObj.Np,1);
+end

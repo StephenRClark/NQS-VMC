@@ -35,3 +35,5 @@ for f = 1:Nflip
     CfgP.up(ind0) = sd; CfgP.dn(CfgP.dn==sd) = [];
     CfgP.dn = [CfgP.dn(CfgP.dn<su) su CfgP.dn(CfgP.dn>su)];
 end
+Diff.Tfac = 1; % Trial probability in both directions is equal.
+end

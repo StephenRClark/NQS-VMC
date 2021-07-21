@@ -18,6 +18,7 @@ function [NQSObj] = PrepPsiNQSS1(NQSObj,Cfg)
 % ---------------------------------
 
 [Cfg_vec] = NQSObj.FullCfg(Cfg); % Convert Cfg structure into a spin configuration vector.
+NQSObj.VisVec = Cfg_vec;
 NQSObj.NsqVec = Cfg_vec.^2; % Log the initial configuration's square values. 
 % Compute the effective angle for this configuration state.
 NQSObj.Theta = NQSObj.b + (NQSObj.w*Cfg_vec) + (NQSObj.W*NQSObj.NsqVec);

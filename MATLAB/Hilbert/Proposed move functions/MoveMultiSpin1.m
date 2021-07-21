@@ -13,77 +13,81 @@ function [Diff,CfgP] = MoveMultiSpin1(Cfg)
 % - Cfg.dn = (Ndn x 1) vector of sites where the spin is down.
 % ---------------------------------
 
-CfgP = Cfg; N = Cfg.N; ZeroSites = (1:N).'; Cfg_vec = zeros(N,1);
-Cfg_vec(Cfg.up) = 1; Cfg_vec(Cfg.dn) = -1;
-ZeroSites(Cfg.up) = 0; ZeroSites(Cfg.dn) = 0; ZeroSites(ZeroSites==0) = [];
-PlusSites = Cfg.up.'; MinusSites = Cfg.dn.';
-Nsite = 1+randi(floor((N-1)/2)); 
-if sum(abs(Cfg_vec))==0
-    Nsite = Nsite - mod(Nsite,2);
-end
-if (sum(abs(Cfg_vec)) == 1) || ((abs(sum(Cfg_vec)) == sum(abs(Cfg_vec))) && (sum(abs(Cfg_vec))>0))
-    Sign = -sign(sum(Cfg_vec));
-else
-    Sign = (-1)^(randi(2));
-end
-DiffSites = zeros(1,Nsite); Shifts = zeros(1,Nsite); Vals0 = zeros(1,Nsite);
-if mod(Nsite,2)
-    Shifts(1) = 2 * Sign; Shifts([2 3]) = -Sign;
-    for s = 4:Nsite
-        Shifts(s) = (-1)^(s);
-    end
-else
-    Shifts(1) = Sign; Shifts(2) = -Sign;
-    for s = 3:Nsite
-        Shifts(s) = (-1)^(s);
-    end
-end
-for s = 1:Nsite
-    if abs(Shifts(s)) == 2
-        if Sign > 0
-            Ind = randi(numel(MinusSites));
-            DiffSites(s) = MinusSites(Ind);
-            MinusSites(Ind) = []; Vals0(s) = -1;
+CfgP = Cfg; % Proposed configuration.
+Cfg_vec = zeros(Cfg.N,1); Cfg_vec(Cfg.up) = 1; Cfg_vec(Cfg.dn) = -1;
+N = Cfg.N; N_up = numel(Cfg.up); N_dn = numel(Cfg.dn);
+% Can change either two or three sites.
+Diff.sign = 1; Vals = [-1 0 1];
+Site1 = randi(N); Val1 = sum(Cfg.up == Site1) - sum(Cfg.dn == Site1);
+Vals(Vals==Val1) = []; Val1P = Vals(randi(2)); Delta = Val1P - Val1;
+switch Delta
+    case -2
+        Sites = Cfg.dn;
+        if isempty(Sites)
+            Diff.num = 3;
+        elseif (N-N_up)<2
+            Diff.num = 2;
         else
-            Ind = randi(numel(PlusSites));
-            DiffSites(s) = PlusSites(Ind);
-            PlusSites(Ind) = []; Vals0(s) = 1;
+            Diff.num = 1+randi(2);
         end
-    else
-        if sign(Shifts(s)) > 0
-            SiteList = [ZeroSites; MinusSites];
-            Ind = randi(numel(SiteList)); N0 = numel(ZeroSites);
-            DiffSites(s) = SiteList(Ind); Vals0(s) = -(Ind>N0);
-            if Ind > N0
-                MinusSites(Ind-N0) = [];
-            else
-                ZeroSites(Ind) = [];
-            end
+        if Diff.num == 3
+            Sites = 1:N; Sites(Cfg.up) = []; Sites(Sites==Site1) = [];
+        end
+    case 2
+        Sites = Cfg.up;
+        if isempty(Sites)
+            Diff.num = 3;
+        elseif (N-N_dn)<2
+            Diff.num = 2;
         else
-            SiteList = [ZeroSites; PlusSites];
-            Ind = randi(numel(SiteList)); N0 = numel(ZeroSites);
-            DiffSites(s) = SiteList(Ind); Vals0(s) = (Ind>N0);
-            if Ind > N0
-                PlusSites(Ind-N0) = [];
-            else
-                ZeroSites(Ind) = [];
-            end
+            Diff.num = 1+randi(2);
         end
-    end
+        if Diff.num == 3
+            Sites = 1:N; Sites(Cfg.dn) = []; Sites(Sites==Site1) = [];
+        end
+    case -1
+        Diff.num = 2; Sites = 1:N; Sites(Cfg.up) = []; Sites(Sites==Site1) = [];
+    case 1
+        Diff.num = 2; Sites = 1:N; Sites(Cfg.dn) = []; Sites(Sites==Site1) = [];
 end
-ValsP = Vals0 + Shifts;
+Diff.pos = zeros(1,Diff.num); Diff.pos(1) = Site1;
+for d = 2:Diff.num
+    Diff.pos(d) = Sites(randi(numel(Sites))); Sites(Sites==Diff.pos(d)) = [];
+end
+if Diff.num == 3
+    Diff.val = [Delta -sign(Delta) -sign(Delta)];
+else
+    Diff.val = [Delta -Delta];
+end
+Vals0 = zeros(1,Diff.num);
+for d = 1:Diff.num
+    Vals0(d) = Cfg_vec(Diff.pos(d));
+end
+ValsP = Vals0 + Diff.val;
 % Adjust lists in CfgP.
-Diff.pos = DiffSites; Diff.num = Nsite; Diff.val = Shifts; Diff.sign = 1;
-for s = 1:Nsite
-    if Vals0(s) == 1
-        CfgP.up(CfgP.up==DiffSites(s)) = [];
-    elseif Vals0(s) == -1
-        CfgP.dn(CfgP.dn==DiffSites(s)) = [];
+for d = 1:Diff.num
+    if Vals0(d) == 1
+        CfgP.up(CfgP.up==Diff.pos(d)) = [];
+    elseif Vals0(d) == -1
+        CfgP.dn(CfgP.dn==Diff.pos(d)) = [];
     end
-    if ValsP(s) == 1
-        CfgP.up = [CfgP.up(CfgP.up<DiffSites(s)), DiffSites(s), CfgP.up(CfgP.up>DiffSites(s))];
-    elseif ValsP(s) == -1
-        CfgP.dn = [CfgP.dn(CfgP.dn<DiffSites(s)), DiffSites(s), CfgP.dn(CfgP.dn>DiffSites(s))];
+    if ValsP(d) == 1
+        CfgP.up = [CfgP.up(CfgP.up<Diff.pos(d)), Diff,pos(d), CfgP.up(CfgP.up>Diff.pos(d))];
+    elseif ValsP(d) == -1
+        CfgP.dn = [CfgP.dn(CfgP.dn<Diff.pos(d)), Diff.pos(d), CfgP.dn(CfgP.dn>Diff.pos(d))];
     end
+end
+N_upP = numel(CfgP.up); N_dnP = numel(CfgP.dn);
+switch Diff.num % Trial probabilities treated differently depending on number.
+    case 3
+        if Delta < 0
+            N_ex = N_up; N_exP = N_dnP;
+        else
+            N_ex = N_dn; N_exP = N_upP;
+        end
+        Diff.Tfac = ((N-N_exP)*(N-N_exP-1))/((N-N_ex)*(N-N_ex-1));
+    case 2
+        Diff.Tfac = ((N-N_upP)*(N-N_dnP)*(2*N-N_up-N_dn)) / ...
+            ((N-N_up)*(N-N_dn)*(2*N-N_upP-N_dnP));
 end
 end

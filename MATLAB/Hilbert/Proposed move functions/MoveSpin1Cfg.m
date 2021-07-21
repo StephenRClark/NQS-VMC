@@ -1,6 +1,6 @@
 % --- Monte Carlo move proposal function ---
 
-function [Diff,CfgP] = MoveSpin1Cfg(Cfg) 
+function [Diff,CfgP] = MoveSpin1Cfg(Cfg)
 % Randomly selects one of four potential S = 1 configuration Markov chain
 % moves, depending on which are viable. All these moves preserve the total
 % spin projection of the configuration.
@@ -19,24 +19,30 @@ function [Diff,CfgP] = MoveSpin1Cfg(Cfg)
 % ---------------------------------
 
 CfgP = Cfg; % Proposed configuration.
-N = Cfg.N; 
+N = Cfg.N; N_up = numel(Cfg.up); N_dn = numel(Cfg.dn);
 % All moves change two sites, type of change depends on site values.
-Diff.num = 2; Diff.sign = 1;
+Diff.num = 2; Diff.sign = 1; Vals = [-1 0 1];
 Site1 = randi(N); Val1 = sum(Cfg.up == Site1) - sum(Cfg.dn == Site1);
-Site2 = randi(N); Val2 = sum(Cfg.up == Site2) - sum(Cfg.dn == Site2);
-% Select a pair of sites that either differ in spin or sum to zero.
-while (Site2 == Site1) || ((Val2 == Val1) && ((Val1 + Val2) ~= 0))
-    Site2 = randi(N); Val2 = sum(Cfg.up == Site2) - sum(Cfg.dn == Site2);
+Vals(Vals==Val1) = []; Val1P = Vals(randi(2)); Delta = Val1P - Val1;
+switch Delta
+    case -2
+        Sites = Cfg.dn;
+        if isempty(Sites)
+            Delta = -1; Sites = 1:N; Sites(Cfg.up) = []; Sites(Sites==Site1) = [];
+        end
+    case 2
+        Sites = Cfg.up;
+        if isempty(Sites)
+            Delta = 1; Sites = 1:N; Sites(Cfg.dn) = []; Sites(Sites==Site1) = [];
+        end
+    case -1
+        Sites = 1:N; Sites(Cfg.up) = []; Sites(Sites==Site1) = [];
+    case 1
+        Sites = 1:N; Sites(Cfg.dn) = []; Sites(Sites==Site1) = [];
 end
-Diff.pos = [Site1, Site2];
-if (Val1 == Val2) && (Val1 == 0) % Both zero - pair promotion.
-    Val1P = (-1)^(randi(2)); Val2P = -Val1P;
-elseif (Val1 == -Val2) && (Val1 ~= 0) % +/- pair;
-    Val1P = - Val1 * randi(2); Val2P = -Val1P; % Either swaps or zeros the pair. 
-else % Simply swap the pair.
-    Val1P = Val2; Val2P = Val1;
-end
-Diff.val = [(Val1P - Val1), (Val2P - Val2)];
+Site2 = Sites(randi(numel(Sites)));
+Val2 = sum(Cfg.up == Site2) - sum(Cfg.dn == Site2); Val2P = Val2 - Delta;
+Diff.pos = [Site1, Site2]; Diff.val = [Delta, -Delta];
 % Adjust lists in CfgP.
 if Val1 == 1
     CfgP.up(CfgP.up==Site1) = [];
@@ -49,13 +55,17 @@ elseif Val2 == -1
     CfgP.dn(CfgP.dn==Site2) = [];
 end
 if Val1P == 1
-    CfgP.up = [CfgP.up(CfgP.up<Site1), Site1, CfgP.up(CfgP.up>Site1)]; 
+    CfgP.up = [CfgP.up(CfgP.up<Site1), Site1, CfgP.up(CfgP.up>Site1)];
 elseif Val1P == -1
-    CfgP.dn = [CfgP.dn(CfgP.dn<Site1), Site1, CfgP.dn(CfgP.dn>Site1)]; 
+    CfgP.dn = [CfgP.dn(CfgP.dn<Site1), Site1, CfgP.dn(CfgP.dn>Site1)];
 end
 if Val2P == 1
-    CfgP.up = [CfgP.up(CfgP.up<Site2), Site2, CfgP.up(CfgP.up>Site2)]; 
+    CfgP.up = [CfgP.up(CfgP.up<Site2), Site2, CfgP.up(CfgP.up>Site2)];
 elseif Val2P == -1
-    CfgP.dn = [CfgP.dn(CfgP.dn<Site2), Site2, CfgP.dn(CfgP.dn>Site2)]; 
+    CfgP.dn = [CfgP.dn(CfgP.dn<Site2), Site2, CfgP.dn(CfgP.dn>Site2)];
 end
+N_upP = numel(CfgP.up); N_dnP = numel(CfgP.dn);
+% Trial probability ratio depends on number of up / dn sites.
+Diff.Tfac = ((N-N_upP)*(N-N_dnP)*(2*N-N_up-N_dn)) / ...
+    ((N-N_up)*(N-N_dn)*(2*N-N_upP-N_dnP));
 end

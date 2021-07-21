@@ -29,7 +29,7 @@ for q=1:SamplerObj.Nequil
     [Diff,CfgP] = PropMove(Cfg); % Propose a move to a new configuration CfgP.
     % Compute ansatz wave function amplitude ratio Psi(CfgP)/Psi(Cfg):
     [PsiRatio,CfgP_update] = AnsatzObj.PsiRatio(Diff); % Intermediate ansatz information CfgP_update is also returned for updates.
-    PChange = min(abs(PsiRatio)^2,1); % Compute the Metropolis acceptance probability min(|Psi(CfgP)|^2/|Psi(Cfg)|^2,1).
+    PChange = min(Diff.Tfac*(abs(PsiRatio)^2),1); % Compute the Metropolis acceptance probability min(T(CfgP|Cfg)|Psi(CfgP)|^2/T(Cfg|CfgP)|Psi(Cfg)|^2,1).
     if rand<=PChange
         % Move is accepted:
         Cfg = CfgP; % Update current configuration.
@@ -43,7 +43,7 @@ for q = 1:SamplerObj.Nsamp
         [Diff,CfgP] = PropMove(Cfg); % Propose a move to a new configuration CfgP.
         % Compute ansatz wave function amplitude ratio Psi(CfgP)/Psi(Cfg):
         [PsiRatio,CfgP_update] = AnsatzObj.PsiRatio(Diff); % Intermediate ansatz information CfgP_update is also returned for updates.
-        PChange = min(abs(PsiRatio)^2,1); % Compute the Metropolis acceptance probability min(|Psi(CfgP)|^2/|Psi(Cfg)|^2,1).
+        PChange = min(Diff.Tfac*(abs(PsiRatio)^2),1); % Compute the Metropolis acceptance probability min(T(CfgP|Cfg)|Psi(CfgP)|^2/T(Cfg|CfgP)|Psi(Cfg)|^2,1).
         if rand<=PChange
             % Move is accepted:
             Cfg = CfgP; % Update current configuration.

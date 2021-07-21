@@ -40,3 +40,5 @@ else
 end 
 Diff.num = 1; % Only one difference between configurations
 Diff.sign = 1; % For compatibility with fermionic implementations.
+Diff.Tfac = 1; % Transition probability in both directions is equal - 1/N.
+end

@@ -45,4 +45,5 @@ for f = 1:Nflip
     end
 end
 Diff.sign = 1; % For compatibility with fermionic implementations.
+Diff.Tfac = 1; % Trial probability in both directions is equal - nflip!(N-nflip)!/(2^nflip)*N!.
 end

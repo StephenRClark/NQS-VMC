@@ -39,3 +39,5 @@ else
 end
 Diff.pos = [Start; Dest];
 Diff.num = 1; % Only one fermion moves.
+Diff.Tfac = 1; % Trial probability in both directions is equal.
+end

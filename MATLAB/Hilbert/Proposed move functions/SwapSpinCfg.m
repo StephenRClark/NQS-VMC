@@ -34,3 +34,5 @@ Diff.num = 2; % Swap moves only ever create two differences.
 % separate function to alter the sign field.
 Diff.sign = 1;
 Diff.type = 0; % For compatibility with fermionic reference states.
+Diff.Tfac = 1; % Trial probability in both directions is equal - 1/N_up*N_dn.
+end

@@ -23,4 +23,4 @@ function [NQSObj] = PsiCfgUpdateNQSNH(NQSObj,Update)
 % ---------------------------------
 
 % Just overwrite the configuration information computed earlier.
-NQSObj.Theta = Update.Theta; NQSObj.NsqVec = Update.NsqVec;
+NQSObj.Theta = Update.Theta; NQSObj.VisVec = VisVec; NQSObj.NsqVec = Update.NsqVec;

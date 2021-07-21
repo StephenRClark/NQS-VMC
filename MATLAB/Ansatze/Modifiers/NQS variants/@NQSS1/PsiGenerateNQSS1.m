@@ -1,6 +1,6 @@
 % --- Exact normalised NQS amplitude generating function ---
 
-function [Psi] = PsiGenerateNQSS1(NQSObj,basis_sz)
+function [Psi] = PsiGenerateNQSS1(NQSObj,Basis)
 % This function computes the full normalised wavefunction Psi for a
 % supplied many-body Basis (which should be bosonic for a number-hidden
 % NQS). This function will likely run into memory problems unless the
@@ -21,10 +21,10 @@ function [Psi] = PsiGenerateNQSS1(NQSObj,basis_sz)
 
 % Basis should be a N_cfg x N matrix. Ensure visible biases align with
 % configurations.
-Ab = (NQSObj.A.').*ones(size(basis_sz,1),1); ab = (NQSObj.a.').*ones(size(basis_sz,1),1);
-Psi = exp(sum(Ab.*(basis_sz.^2) + (ab.*basis_sz),2)); % Visible bias contributions handled here.
+Ab = (NQSObj.A.').*ones(size(Basis,1),1); ab = (NQSObj.a.').*ones(size(Basis,1),1);
+Psi = exp(sum(Ab.*(Basis.^2) + (ab.*Basis),2)); % Visible bias contributions handled here.
 for h = 1:NQSObj.Nh
-    Theta = sum((basis_sz .* NQSObj.w(h,:)) + (basis_sz.^2 .* NQSObj.W(h,:)),2) + NQSObj.b(h);
+    Theta = sum((Basis .* NQSObj.w(h,:)) + (Basis.^2 .* NQSObj.W(h,:)),2) + NQSObj.b(h);
     Psi = Psi .* cosh(Theta);    
 end
 ModPsi = sqrt(sum(abs(Psi).^2)); % Try normalising every hidden unit to avoid numerical overflow.

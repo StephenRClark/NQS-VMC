@@ -48,13 +48,13 @@ CPSObj.bti = zeros(Alpha,HDim-1);
 CPSObj.Wti = zeros(VDim-1,HDim-1,Nv,Alpha);
 
 for v = 1:(VDim-1)
-    CPSObj.ati(v) = Params.a * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
+    CPSObj.ati(v) = (Params.a + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand)*(Params.a~=0);
 end
 for h=1:(Alpha * (HDim-1))
-    CPSObj.bti(h) = Params.b * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
+    CPSObj.bti(h) = (Params.a + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand)*(Params.b~=0);
 end
 for k = 1:(Alpha * Nv * (VDim-1)*(HDim-1))
-    CPSObj.Wti(k) = Params.W * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
+    CPSObj.Wti(k) = (Params.a + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand)*(Params.W~=0);
 end
 
 % Repackage the ati, bti and Wti in the necessary CPS form.
@@ -72,3 +72,4 @@ for a = 1:Alpha
 end
 
 CPSObj.OptInds = ones(CPSObj.Np,1);
+end

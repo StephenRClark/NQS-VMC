@@ -17,7 +17,7 @@ function [Diff,CfgP] = MoveBoseCfg(Cfg)
 % Convention - first position is site being vacated, second is destination.
 % Difference values are in reference to differences in Cfg.occ.
 
-Cfg_vec = Cfg.occ; CfgP = Cfg; N = Cfg.N; Nmax = Cfg.Nmax;
+Cfg_vec = Cfg.occ; CfgP = Cfg; Nb = Cfg.Nb; N = Cfg.N; Nmax = Cfg.Nmax;
 
 % Pick a start site that has bosons already.
 SiteStart = find(Cfg_vec>0); Start = SiteStart(randi(numel(SiteStart)));
@@ -28,7 +28,13 @@ while Dest == Start
 end
 Diff.num = 2; % Two occupation numbers change.
 Diff.val = [-1, 1]; Diff.pos = [Start, Dest];
-
+% Calculate trial probability ratio factor.
+Nmax = sum(Cfg_vec == Nmax); Nocc = sum(Cfg_vec>0);
+dNmax = (Cfg_vec(Dest) == (Nmax-1)) - (Cfg_vec(Start) == Nmax);
+dNocc = (Cfg_vec(Dest) == 0) - (Cfg_vec(Start) == 1);
+% Trial probability ratio depends on number of occupied sites.
+Diff.Tfac = (Nocc+dNocc)/Nocc; 
 for d = 1:2
     CfgP.occ(Diff.pos(d)) = CfgP.occ(Diff.pos(d)) + Diff.val(d);
+end
 end

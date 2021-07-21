@@ -130,8 +130,7 @@ classdef Jast < Modifier
         % LogDeriv: Logarithmic derivative for the variational parameters
         % in Modifier.
         function [dLogp] = LogDeriv(obj,Cfg)
-            Cfg_vec = obj.FullCfg(Cfg);
-            % Sum over 2nd index accounts for fermionic representations.            
+            Cfg_vec = obj.FullCfg(Cfg);          
             dLogp = zeros(obj.Np,1); % Initialise full vector of derivatives.            
             % Parameter indices associated with site pairs contained in JsV.
             for p = 1:obj.Np

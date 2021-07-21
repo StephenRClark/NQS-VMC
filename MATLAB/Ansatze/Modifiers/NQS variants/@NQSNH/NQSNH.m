@@ -43,7 +43,10 @@ classdef NQSNH < NQS
         % Constructor for general number hidden NQS:
         function obj = NQSNH(Hilbert,Graph,Params,VFlag)
             obj@NQS(Hilbert,Graph,Params,VFlag);
-            obj.HDim = Hilbert.d; % Set NQS hidden dimension to match visible.
+            obj.HDim = Params.HDim; % Set NQS hidden dimension in Params.
+            if (obj.HDim < 2) || (floor(obj.HDim) ~= obj.HDim)
+                error('Hidden dimension must be an integer no less than 2.');
+            end
             obj = RandomInitPsiNQSNH(obj,Params);
         end
         

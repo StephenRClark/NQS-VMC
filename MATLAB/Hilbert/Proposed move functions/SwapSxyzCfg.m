@@ -57,4 +57,5 @@ if Val2P == 1
 elseif Val2P == -1
     CfgP.dn = [CfgP.dn(CfgP.dn<Site2), Site2, CfgP.dn(CfgP.dn>Site2)]; 
 end
+Diff.Tfac = 1; % Trial probability in both directions is equal.
 end

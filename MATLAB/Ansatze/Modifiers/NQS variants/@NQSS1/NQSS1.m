@@ -34,6 +34,7 @@ classdef NQSS1 < NQS
     end
     
     properties (Hidden)
+        VisVec = 0; % Visible occupancies, Nv x 1 vector.
         NsqVec = 0; % Squared visible occupancies, Nv x 1 vector.
     end
     
@@ -41,6 +42,10 @@ classdef NQSS1 < NQS
         % Constructor for general number hidden NQS:
         function obj = NQSS1(Hilbert,Graph,Params,VFlag)
             obj@NQS(Hilbert,Graph,Params,VFlag);
+            if strcmp(Hilbert.Type,'Bose')
+                obj.FullCfg = @(cfg) FullBoseCfg(cfg) - 1;
+                disp('NQSS1 modifier is intended for spins - may have unexpected behaviour for bosons.');
+            end
             obj = RandomInitPsiNQSS1(obj,Params);
         end
         
@@ -53,7 +58,7 @@ classdef NQSS1 < NQS
         % PsiCfgUpdate: Update Modifier configuration information inside
         % Update.
         function obj = PsiCfgUpdate(obj,Update)
-            obj.Theta = Update.Theta; obj.NsqVec = Update.NsqVec;
+            obj.Theta = Update.Theta; obj.VisVec = Update.VisVec; obj.NsqVec = Update.NsqVec;
         end
         
         % PrepPsi: Initialise Modifier configuration information given a
@@ -79,19 +84,20 @@ classdef NQSS1 < NQS
         function [Ratio,Update] = PsiRatio(obj,Diff)
             Ratio = exp(sum(Diff.val.'.*obj.a(Diff.pos))); % Initialise the ratio with the a-vector contribution.
             Theta_shift = zeros(obj.Nh,1); % Initialise effective angle shift.
-            Nsq_shift = zeros(obj.Nv,1);
+            Vis_shift = zeros(obj.Nv,1); Nsq_shift = zeros(obj.Nv,1);
             % Only loop over the sites where there are differences:
             for i=1:Diff.num
+                Vis_shift(Diff.pos(i)) = Diff.val(i);
                 Theta_shift = Theta_shift + Diff.val(i)*obj.w(:,Diff.pos(i));
-                Nsq_shift(Diff.pos(i)) = (2 - abs(Diff.val(i))) * ((-1)^(obj.NsqVec(Diff.pos(i))));
+                Nsq_shift(Diff.pos(i)) = 2*Diff.val(i)*obj.VisVec(Diff.pos(i)) + Diff.val(i)^2;
                 Theta_shift = Theta_shift + Nsq_shift(Diff.pos(i))*obj.W(:,Diff.pos(i));
             end
-            NsqP = obj.NsqVec + Nsq_shift;% Update the squared occupancy vector for the proposed configuration.
+            VisP = obj.VisVec + Vis_shift; NsqP = obj.NsqVec + Nsq_shift;% Update the squared occupancy vector for the proposed configuration.
             Ratio = Ratio * exp(sum(Nsq_shift(Diff.pos).*obj.A(Diff.pos))); % Compute visible square bias contribution.
             ThetaP = obj.Theta + Theta_shift; % Update the effective angle for the proposed configuration.
             Ratio = Ratio * prod(cosh(ThetaP) ./ cosh(obj.Theta)); % Compute full ratio.
             % Collect new configuration information into Update.
-            Update.Theta = ThetaP; Update.NsqVec = NsqP;
+            Update.Theta = ThetaP; Update.VisVec = VisP; Update.NsqVec = NsqP;
         end
         
         % LogDeriv: Logarithmic derivative for the variational parameters
@@ -121,6 +127,13 @@ classdef NQSS1 < NQS
         % ParamLoad: replaces parameters with the provided ones in vector P.
         function [obj] = ParamLoad(obj,P)
             obj = ParamLoadNQSS1(obj,P);
+        end
+        
+        % ChangeFullCfg: change out the configuration reading function.
+        function [obj] = ChangeFullCfg(obj,F_new)
+            disp(['Configuration reading function changed from ' func2str(obj.FullCfg) ...
+                ' to ' func2str(F_new)]);
+            obj.FullCfg = F_new;            
         end
         
         % PropertyList: Output a struct with the relevant properties as

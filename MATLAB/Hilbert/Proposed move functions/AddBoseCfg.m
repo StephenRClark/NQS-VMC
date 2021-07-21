@@ -23,5 +23,6 @@ while NewNum == OldNum
 end
 Diff.num = 1; % One occupation number changes.
 Diff.val = NewNum - OldNum; Diff.pos = Start;
-
+Diff.Tfac = 1; % Trial probability in both directions is equal - 1/N*(Nmax+1).
 CfgP.occ(Site) = NewNum;
+end
