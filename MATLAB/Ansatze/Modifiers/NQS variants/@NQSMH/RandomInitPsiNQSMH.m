@@ -58,8 +58,8 @@ for v = 1:Nv
     NQSObj.A(v) = (Params.A + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand)*(Params.A~=0);
 end
 for h=1:Nh
-    NQSObj.BH(h) = (Params.BH + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand)*(Params.b~=0);
-    NQSObj.BM(h) = (Params.BM + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand)*(Params.B~=0);
+    NQSObj.BH(h) = (Params.BH + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand)*(Params.BH~=0);
+    NQSObj.BM(h) = (Params.BM + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand)*(Params.BM~=0);
 end
 for h = 1:Nh
     for v = 1:Nv
