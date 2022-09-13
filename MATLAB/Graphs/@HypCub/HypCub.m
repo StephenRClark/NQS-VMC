@@ -24,6 +24,8 @@ classdef HypCub < Graph
             end
             % Initialise using Graph superclass.
             obj@Graph(Dim,Bonds,Bound,LVecs,SFlag);
+            % Set Graph sublattice indices.
+            obj = FindSublattice(obj);
         end
         
         function [obj] = AddRotations(obj)

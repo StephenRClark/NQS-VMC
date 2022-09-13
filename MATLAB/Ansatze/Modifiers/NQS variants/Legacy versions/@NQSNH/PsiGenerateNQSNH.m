@@ -1,6 +1,6 @@
 % --- Exact normalised NQS amplitude generating function ---
 
-function [Psi] = PsiGenerateNQSSH(NQSObj,Basis)
+function [Psi] = PsiGenerateNQSNH(NQSObj,Basis)
 % This function computes the full normalised wavefunction Psi for a
 % supplied many-body Basis (which should be bosonic for a number-hidden
 % NQS). This function will likely run into memory problems unless the
@@ -27,7 +27,10 @@ Psi = exp(sum(A.*(Basis.^2) + (a.*Basis),2)); % Visible bias contributions handl
 for h = 1:NQSObj.Nh
     Theta = sum(Basis .* NQSObj.W(h,:),2) + NQSObj.b(h);
     B = NQSObj.B(h).*ones(size(Basis,1),1);
-    Psi = Psi .* SHTrace(Theta,B,NQSObj.HDim);
+    Psi = Psi .* NHTrace(Theta,B,NQSObj.HDim);
+end
+if isinf(max(abs(Psi))) == 0
+    Psi = Psi/max(abs(Psi));
 end
 ModPsi = sqrt(sum(abs(Psi).^2));
 Psi = Psi/ModPsi;
