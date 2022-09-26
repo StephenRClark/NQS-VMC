@@ -90,9 +90,9 @@ classdef NQSU < Modifier
                 end
             end
             if isfield(Params,'Alpha')
-                obj.Nh = Params.Alpha * Hilbert.N;
+                obj.Nh = Params.Alpha * Hilbert.N; obj.Alpha = Params.Alpha;
             else
-                obj.Nh = Params.Nh;
+                obj.Alpha = ceil(Params.Nh/Hilbert.N); obj.Nh = obj.Alpha*Hilbert.N;
             end
             obj.Graph = Graph;
             obj = RandomInitPsiNQSU(obj,Params);
@@ -137,10 +137,10 @@ classdef NQSU < Modifier
             dU = zeros(Nmax*obj.Nv,1);
             for d = 1:Diff.num
                 SegInds = (1:Nmax) + Nmax*(Diff.pos(d)-1);
-                Ind0 = 1+sum((1:Nmax).*obj.UVec(SegInds)); IndP = Ind0+(Diff.val(d)/dV);
+                Ind0 = sum((1:Nmax).'.*obj.UVec(SegInds)); IndP = Ind0+(Diff.val(d)/dV);
                 dU(SegInds) = -obj.UVec(SegInds);
-                if (IndP-1) > 0
-                    dU(IndP-1 + Nmax*(Diff.pos(d)-1)) = 1;
+                if IndP > 0
+                    dU(IndP + Nmax*(Diff.pos(d)-1)) = 1;
                 end
             end
             ThetaP = obj.Theta + obj.W*dU; UVecP = obj.UVec + dU;
@@ -150,14 +150,14 @@ classdef NQSU < Modifier
         
         % LogDeriv: Logarithmic derivative for the variational parameters
         % in Modifier.
-        function [dLogp] = LogDeriv(obj,Cfg)
-            Nmax = obj.VDim - 1;
+        function [dLogp] = LogDeriv(NQSObj,Cfg)
+            Nmax = NQSObj.VDim - 1;
             % Extract information on translational symmetries from Graph.
             GraphObj = NQSObj.Graph; BondMap = GraphObj.BondMap; SLInds = GraphObj.SLInds;
             Ntr = numel(BondMap); % Number of translates - Nh = Ntr*Alpha.
             Nsl = max(SLInds); % Number of sublattices for da.
             Cfg_vec = NQSObj.FullCfg(Cfg); % Build the spin configuration vector.
-            UMat = zeros(Nmax,obj.Nv);
+            UMat = zeros(Nmax,NQSObj.Nv);
             dLogp = zeros(NQSObj.Np,1); % Initialise full vector of derivatives.
             for v = 1:Nmax
                 UMat(v,:) = (Cfg_vec.' == NQSObj.VList(v+1));
@@ -170,18 +170,18 @@ classdef NQSU < Modifier
                 end
             end            
             dTheta = tanh(NQSObj.Theta);
-            for al = 1:obj.Alpha
+            for al = 1:NQSObj.Alpha
                 bInd = Nmax*Nsl + al;
                 if sum(NQSObj.OptInds(bInd,:)) ~= 0
                     dLogp(bInd) = sum(dTheta((1:Ntr)+(al-1)*Ntr));
                 end
-                for n = 1:obj.Nv
+                for n = 1:NQSObj.Nv
                     for v = 1:Nmax
-                        PInd = Nmax*Nsl + obj.Alpha + Nmax*((n-1)+(al-1)*obj.Nv) + v;
+                        PInd = Nmax*Nsl + NQSObj.Alpha + Nmax*((n-1)+(al-1)*NQSObj.Nv) + v;
                         if sum(NQSObj.OptInds(PInd,:)) ~= 0
                             for bd = 1:numel(BondMap)
-                                HInd = bd + (al-1)*Ntr; VInd = v + Nmax*(BondMap{bd}(n)-1);
-                                dLogp(PInd) = dLogp(PInd) + OHVec(VInd)*dTheta(HInd);
+                                HInd = bd + (al-1)*Ntr; VInd = BondMap{bd}(n);
+                                dLogp(PInd) = dLogp(PInd) + UMat(v,VInd)*dTheta(HInd);
                             end
                         end
                     end

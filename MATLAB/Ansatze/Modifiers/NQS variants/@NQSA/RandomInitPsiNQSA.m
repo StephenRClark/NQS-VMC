@@ -38,17 +38,12 @@ NQSObj.A = zeros(Nv,1);
 NQSObj.Av = zeros(Nsl,1);
 NQSObj.b = zeros(Nh,1);
 NQSObj.bv = zeros(Alpha,1);
-NQSObj.B = zeros(Nh,1);
-NQSObj.Bv = zeros(Alpha,1);
 NQSObj.W = zeros(Nh,Nv);
 NQSObj.Wm = zeros(Alpha,Nv);
 NQSObj.Theta = zeros(Nh,1);
 
 if isfield(Params,'A') == 0
     Params.A = Params.a;
-end
-if isfield(Params,'B') == 0
-    Params.B = Params.b;
 end
 
 for v = 1:Nsl
@@ -57,7 +52,6 @@ for v = 1:Nsl
 end
 for al = 1:Alpha
     NQSObj.bv(al) = (Params.b + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand)*(Params.b~=0);
-    NQSObj.Bv(al) = (Params.B + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand)*(Params.B~=0);
     for v = 1:Nv
         NQSObj.Wm(al,v) = (Params.W + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand)*(Params.W~=0);
     end
@@ -71,7 +65,6 @@ end
 % Constructing shift invariant W matrix.
 for al = 1:Alpha
     NQSObj.b((1:Ntr)+(al-1)*Ntr) = NQSObj.bv(al);
-    NQSObj.B((1:Ntr)+(al-1)*Ntr) = NQSObj.Bv(al);
     % For each layer labelled by a, generate the desired translates.
     for b = 1:numel(BondMap)
         for n = 1:Nv

@@ -26,36 +26,50 @@ AP = round(Params.AlphaP); % Require integer AlphaP.
 % Make local copies to reduce notation in code below.
 Nv = NQSObj.Nv; Nmax = NQSObj.VDim-1; % Number of "visible" spins and visible dimension.
 A0 = NQSObj.Alpha; % Number of unique coupling sets.
+OptInds = NQSObj.OptInds; % Optimisation indices, arranged [Re(p), Im(p)]
 
 GraphObj = NQSObj.Graph; BondMap = GraphObj.BondMap; SLInds = GraphObj.SLInds;
 Nsl = max(SLInds); Ntr = numel(BondMap); Ng = GraphObj.N;
 
-bv = NQSObj.bv; Wm = NQSObj.Wm;
+bv = NQSObj.bv; Wm = NQSObj.Wm; 
+
+OptInds_a = OptInds(1:(Nsl*Nmax),:);
+OptInds_b0 = OptInds(Nsl*Nmax+(1:A0),:);
+OptInds_W0 = OptInds(Nsl*Nmax+A0+(1:(A0*Nv*Nmax)),:);
 
 if AP < 0
     if abs(AP) >= A0
         error('Proposed action removes all hidden units from NQS object.');
     else
         AF = A0 + AP;
-        bF = bv(1:AF); WF = Wm(1:AF,:);
+        bvF = bv(1:AF); OptInds_bF = OptInds_b0(1:AF,:);     
+        WmF = Wm(1:AF,:); OptInds_WF = OptInds_W0((1:(AF*Nv*Nmax)),:);
     end
 else
     AF = A0 + AP;
-    bF = zeros(AP,1); WF = zeros(AP,Nmax*Nv);
+    bvT = zeros(AP,1); WmT = zeros(AP,Nmax*Nv);
     for p = 1:AP
-        bF(p) = Params.b * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
+        bvT(p) = Params.b * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
         for v = 1:Nmax*Nv
-            WF(p,v) = Params.W * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
+            WmT(p,v) = Params.W * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
         end
     end
-    bF = [bv; bF]; WF = [Wm; WF];
+    OptInds_WT_R = (real(WmT.')~=0); OptInds_WT_I = (imag(WmT.')~=0);
+    bvF = [bv; bvT]; OptInds_bT = [(real(bvT)~=0), (imag(bvT)~=0)];
+    WmF = [Wm; WmT]; OptInds_WT = [OptInds_WT_R(:), OptInds_WT_I(:)];
+    OptInds_bF = [OptInds_b0; OptInds_bT];
+    OptInds_WF = [OptInds_W0; OptInds_WT];
 end
 
-NhF = AF*Ntr;
+Alpha = AF; NhF = Alpha*Ntr;
+
+% Sort out optimisation indices
+OptInds = [OptInds_a; OptInds_bF; OptInds_WF];
 
 % Reassign all fields affected by Nh change.
 NQSObj.Np = Nmax*Nsl + AF + AF*Nmax*Nv; NQSObj.Nh = NhF; NQSObj.Theta = zeros(NhF,1);
-NQSObj.bv = bF; NQSObj.Wm = WF; NQSObj.Alpha = AF;
+NQSObj.bv = bvF; NQSObj.Wm = WmF; 
+NQSObj.Alpha = Alpha; NQSObj.OptInds = OptInds;
 
 % Repackage the parameters in the necessary form.
 for al = 1:Alpha
@@ -74,8 +88,5 @@ for al = 1:Alpha
         end
     end
 end
-
-NQSObj.OptInds = [(real(NQSObj.av)~=0), (imag(NQSObj.av)~=0); (real(NQSObj.bv)~=0),...
-    (imag(NQSObj.bv)~=0); (real(NQSObj.Wm(:))~=0), (imag(NQSObj.Wm(:))~=0)];
 
 end

@@ -43,6 +43,8 @@ classdef NQSA < Modifier
         Alpha = 1; % Hidden unit density.
         a = 0; % Visible site bias terms, Nv x 1 vector.
         av = 0; % Visible bias parameters, Nsl x 1 vector.
+        A = 0; % Visible square bias terms, Nv x 1 vector.
+        Av = 0; % Visible square bias parameters, Nsl x 1 vector.
         b = 0; % Hidden spin bias terms, Nh x 1 vector.
         bv = 0; % Hidden bias parameters, Alpha x 1 vector,
         W = 0; % Hidden-visible coupling terms, Nh x Nv matrix.
@@ -85,9 +87,9 @@ classdef NQSA < Modifier
                 end
             end
             if isfield(Params,'Alpha')
-                obj.Nh = Params.Alpha * Hilbert.N;
+                obj.Nh = Params.Alpha * Hilbert.N; obj.Alpha = Params.Alpha;
             else
-                obj.Nh = Params.Nh;
+                obj.Alpha = ceil(Params.Nh/Hilbert.N); obj.Nh = obj.Alpha*Hilbert.N;
             end
             obj.Graph = Graph;
             obj = RandomInitPsiNQSA(obj,Params);
@@ -158,15 +160,15 @@ classdef NQSA < Modifier
                     dLogp(s+Nsl) = sum(Cfg_vec(SLInds==s).^2); % Insert d/dA.
                 end
             end
-            dTheta = tanh(NQSObj.Theta);
+            dTheta = tanh(obj.Theta);
             for al = 1:obj.Alpha
                 bInd = 2*Nsl + al;
-                if sum(NQSObj.OptInds(bInd,:)) ~= 0
+                if sum(obj.OptInds(bInd,:)) ~= 0
                     dLogp(bInd) = sum(dTheta((1:Ntr)+(al-1)*Ntr));
                 end
                 for v = 1:obj.Nv
                     PInd = 2*Nsl + obj.Alpha + (al-1)*obj.Nv + v;
-                    if sum(NQSObj.OptInds(PInd,:)) ~= 0
+                    if sum(obj.OptInds(PInd,:)) ~= 0
                         for bd = 1:numel(BondMap)
                             HInd = bd + (al-1)*Ntr; VInd = BondMap{bd}(v);
                             if VInd ~= 0

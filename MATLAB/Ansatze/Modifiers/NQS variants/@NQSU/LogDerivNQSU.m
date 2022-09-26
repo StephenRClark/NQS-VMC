@@ -39,17 +39,17 @@ Ntr = numel(BondMap); % Number of translates - Nh = Ntr*Alpha.
 Nsl = max(SLInds); % Number of sublattices for da.
 
 Cfg_vec = NQSObj.FullCfg(Cfg); % Build the spin configuration vector.
-UVec = zeros(Nmax,Nv);
+UMat = zeros(Nmax,Nv);
 
 dLogp = zeros(NQSObj.Np,1); % Initialise full vector of derivatives.
 
 for v = 1:Nmax
-    UVec(v,:) = (Cfg_vec.' == NQSObj.VList(v+1));
+    UMat(v,:) = (Cfg_vec.' == NQSObj.VList(v+1));
     for s = 1:Nsl
         PInd = v + (s-1)*Nmax;
         if sum(NQSObj.OptInds(PInd,:))~=0
             % Use sublattice indices to determine which sites contribute
-            dLogp(PInd) = sum(UVec(PInd,GraphObj.SLInds==s));
+            dLogp(PInd) = sum(UMat(PInd,GraphObj.SLInds==s));
         end
     end
 end
@@ -65,8 +65,8 @@ for a = 1:Alpha
             PInd = Nmax*Nsl + Alpha + Nmax*((n-1)+(a-1)*Nv) + v;
             if sum(NQSObj.OptInds(PInd,:)) ~= 0
                 for b = 1:numel(BondMap)
-                    HInd = b + (a-1)*Ntr; VInd = v + Nmax*(BondMap{b}(n)-1);
-                    dLogp(PInd) = dLogp(PInd) + UVec(VInd)*dTheta(HInd);
+                    HInd = b + (a-1)*Ntr; VInd = BondMap{b}(n);
+                    dLogp(PInd) = dLogp(PInd) + UMat(v,VInd)*dTheta(HInd);
                 end
             end
         end

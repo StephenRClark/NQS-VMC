@@ -55,8 +55,8 @@ for s = 1:Nsl
     end
 end
 
-dTheta = dTSBTrace(NQSObj.Theta,NQSObj.HDim,NQSObj.B);
-dB = dBSBTrace(NQSObj.Theta,NQSObj.HDim,NQSObj.B);
+dTheta = dT_NTrace(NQSObj.Theta,NQSObj.B,NQSObj.HDim);
+dB = dB_NHTrace(NQSObj.Theta,NQSObj.B,NQSObj.HDim);
 for al = 1:NQSObj.Alpha
     bInd = 2*Nsl + al; BInd = bInd + NQSObj.Alpha;
     if sum(NQSObj.OptInds(bInd,:)) ~= 0

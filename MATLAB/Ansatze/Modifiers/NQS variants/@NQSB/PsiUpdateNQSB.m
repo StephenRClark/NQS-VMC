@@ -1,6 +1,6 @@
 % --- General NQS wave function update function ---
 
-function NQSObj = PsiUpdateNQSB(NQSObj,dP)
+function NQSObj = PsiUpdateNQSB(NQSObj,P)
 % This function updates the NQS parameters of the ansatz from a vector of
 % parameters P.
 % ---------------------------------
@@ -37,7 +37,7 @@ Nv = NQSObj.Nv; % Number of "visible" spins.
 GraphObj = NQSObj.Graph; BondMap = GraphObj.BondMap; SLInds = GraphObj.SLInds;
 Nsl = max(SLInds); Ntr = numel(BondMap); Ng = GraphObj.N; Alpha = NQSObj.Alpha;
 
-dP = real(dP).*NQSObj.OptInds(:,1) + 1i*imag(dP).*NQSObj.OptInds(:,2); % Zeroes out any undesired parameter changes.
+P = real(P).*NQSObj.OptInds(:,1) + 1i*imag(P).*NQSObj.OptInds(:,2); % Zeroes out any undesired parameter changes.
 
 % Unpack the changes in parameters of the NQS:
 da = P(1:Nsl);

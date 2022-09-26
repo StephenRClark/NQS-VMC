@@ -46,7 +46,7 @@ classdef NQSB < Modifier
         Nv = 1; % Number of visible neurons.
         Nh = 1; % Number of hidden spins.
         Alpha = 1; % Hidden unit density.
-        HDim = 1;
+        HDim = 1; % Hidden unit dimension.
         a = 0; % Visible site bias terms, Nv x 1 vector.
         av = 0; % Visible bias parameters, Nsl x 1 vector.
         A = 0; % Visible square bias terms, Nv x 1 vector.
@@ -64,7 +64,7 @@ classdef NQSB < Modifier
         NsqVec = 0; % Squared visible occupancies, Nv x 1 vector.
         Theta = 0; % Local effective angle, Nh x 1 vector.
         ParamCap = 5; % Parameter cap to mitigate effects of erroneous parameter changes.
-        OptInds = zeros(1,1); % Individual parameter flags for variational purposes.
+        OptInds = zeros(1,2); % Individual parameter flags for variational purposes.
     end
     
     properties (Hidden, SetAccess = protected)
@@ -100,9 +100,9 @@ classdef NQSB < Modifier
                 end
             end
             if isfield(Params,'Alpha')
-                obj.Nh = Params.Alpha * Hilbert.N;
+                obj.Nh = Params.Alpha * Hilbert.N; obj.Alpha = Params.Alpha;
             else
-                obj.Nh = Params.Nh;
+                obj.Alpha = ceil(Params.Nh/Hilbert.N); obj.Nh = obj.Alpha*Hilbert.N;
             end
             obj.Graph = Graph;
             obj = RandomInitPsiNQSB(obj,Params);
@@ -174,19 +174,19 @@ classdef NQSB < Modifier
                     dLogp(s+Nsl) = sum(Cfg_vec(SLInds==s).^2); % Insert d/dA.
                 end
             end
-            dTheta = dTSBTrace(obj.Theta,obj.HDim,obj.B);
-            dB = dBSBTrace(obj.Theta,obj.HDim,obj.B);
+            dTheta = dT_NHTrace(obj.Theta,obj.B,obj.HDim);
+            dB = dB_NHTrace(obj.Theta,obj.B,obj.HDim);
             for al = 1:obj.Alpha
                 bInd = 2*Nsl + al; BInd = bInd + obj.Alpha;
-                if sum(NQSObj.OptInds(bInd,:)) ~= 0
+                if sum(obj.OptInds(bInd,:)) ~= 0
                     dLogp(bInd) = sum(dTheta((1:Ntr)+(al-1)*Ntr)); % Insert d/db.
                 end
-                if sum(NQSObj.OptInds(BInd,:)) ~= 0
+                if sum(obj.OptInds(BInd,:)) ~= 0
                     dLogp(BInd) = sum(dB((1:Ntr)+(al-1)*Ntr)); % Insert d/dB.
                 end
                 for v = 1:obj.Nv
                     PInd = 2*Nsl + 2*obj.Alpha + (al-1)*obj.Nv + v;
-                    if sum(NQSObj.OptInds(PInd,:)) ~= 0
+                    if sum(obj.OptInds(PInd,:)) ~= 0
                         for bd = 1:numel(BondMap)
                             HInd = bd + (al-1)*Ntr; VInd = BondMap{bd}(v);
                             if VInd ~= 0
@@ -197,6 +197,7 @@ classdef NQSB < Modifier
                 end
             end
             % Do some forward error prevention for NaN or Inf elements by zeroing them:
+            dLogp = real(dLogp).*obj.OptInds(:,1) + 1i*imag(dLogp).*obj.OptInds(:,2);
             dLogp(isnan(dLogp)) = 0;
             dLogp(isinf(dLogp)) = 0;
         end

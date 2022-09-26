@@ -59,6 +59,6 @@ NQSObj.W(isnan(NQSObj.W)) = 0;
 ind = abs(NQSObj.W)>cap;
 NQSObj.W(ind) = sign(NQSObj.W(ind))*cap;
 
-NQSObj.OptInds = (P~=0); % Assume the non-zero parameters are intended to be varied.
+NQSObj.OptInds = [(real(P)~=0), (imag(P)~=0)]; % Assume the non-zero parameters are intended to be varied.
 
 end

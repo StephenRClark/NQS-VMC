@@ -1,0 +1,12 @@
+#!/bin/bash
+
+#SBATCH --job-name=NQSNH100
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=16 
+#SBATCH --partition=cpu
+#SBATCH --time=120:0:00
+
+module load apps/matlab/2018a
+
+srun matlab -nosplash -nodesktop -noFigureWindows -r BHM_2D_UScan_NQS_NH_100

@@ -30,6 +30,7 @@ AP = round(Params.AlphaP); % Require integer AlphaP.
 % Make local copies to reduce notation in code below.
 Nv = NQSObj.Nv; % Number of "visible" spins.
 A0 = NQSObj.Alpha; % Starting hidden unit density.
+OptInds = NQSObj.OptInds; % Optimisation indices, arranged [Re(p), Im(p)]
 
 % Extract information on translational symmetries from Graph.
 GraphObj = NQSObj.Graph; BondMap = GraphObj.BondMap; SLInds = GraphObj.SLInds;
@@ -37,35 +38,52 @@ Nsl = max(SLInds); Ntr = numel(BondMap); Ng = GraphObj.N;
 
 bv = NQSObj.bv; Bv = NQSObj.Bv; Wm = NQSObj.Wm;
 
+OptInds_aA = OptInds(1:Nsl,:);
+OptInds_b0 = OptInds(2*Nsl+(1:A0),:);
+OptInds_B0 = OptInds(2*Nsl+A0+(1:A0),:);
+OptInds_W0 = OptInds(2*Nsl+2*A0+(1:(A0*Nv)),:);
+
 if isfield(Params,'B') == 0
     Params.B = Params.b;
 end
 
-if AP < 0
+if AP < 0 % Remove hidden units.
     if abs(AP) >= A0
         error('Proposed action removes all hidden units from NQS object.');
     else
         AF = A0 + AP;
-        bvF = bv(1:AF); BvF = Bv(1:AF); WmF = Wm(1:AF,:);
+        bvF = bv(1:AF); OptInds_bF = OptInds_b0(1:AF,:);  
+        BvF = Bv(1:AF); OptInds_BF = OptInds_B0(1:AF,:);        
+        WmF = Wm(1:AF,:); OptInds_WF = OptInds_W0((1:(AF*Nv)),:);
     end
 else
     AF = A0 + AP;
-    bvF = zeros(AP,1); BvF = zeros(AP,1); WmF = zeros(AP,Nv);
+    bvT = zeros(AP,1); BvT = zeros(AP,1); WmT = zeros(AP,Nv);
     for a = 1:AP
-        bvF(a) = Params.b * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
-        BvF(a) = Params.B * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
+        bvT(a) = Params.b * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
+        BvT(a) = Params.B * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
         for v = 1:Nv
-            WmF(a,v) = Params.W * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
+            WmT(a,v) = Params.W * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
         end
     end
-    bvF = [bv; bvF]; BvF = [Bv; BvF]; WmF = [Wm; WmF];
+    OptInds_WT_R = (real(WmT.')~=0); OptInds_WT_I = (imag(WmT.')~=0);
+    bvF = [bv; bvT]; OptInds_bT = [(real(bvT)~=0), (imag(bvT)~=0)];
+    BvF = [Bv; BvT]; OptInds_BT = [(real(BvT)~=0), (imag(BvT)~=0)];
+    WmF = [Wm; WmT]; OptInds_WT = [OptInds_WT_R(:), OptInds_WT_I(:)];
+    OptInds_bF = [OptInds_b0; OptInds_bT];
+    OptInds_BF = [OptInds_B0; OptInds_BT];
+    OptInds_WF = [OptInds_W0; OptInds_WT];
 end
 
-NhF = AF*Ntr;
+Alpha = AF; NhF = Alpha*Ntr;
+
+% Sort out optimisation indices
+OptInds = [OptInds_aA; OptInds_bF; OptInds_BF; OptInds_WF];
 
 % Reassign all fields affected by Nh change.
 NQSObj.Np = 2*Nsl + 2*AF + AF*Nv; NQSObj.Nh = NhF; NQSObj.Theta = zeros(NhF,1);
-NQSObj.bv = bvF; NQSObj.Bv = BvF; NQSObj.Wm = WmF; NQSObj.Alpha = AF;
+NQSObj.bv = bvF; NQSObj.Bv = BvF; NQSObj.Wm = WmF; 
+NQSObj.Alpha = Alpha; NQSObj.OptInds = OptInds;
 
 % Constructing shift invariant W matrix.
 for al = 1:Alpha
@@ -82,11 +100,5 @@ for al = 1:Alpha
         end
     end
 end
-
-NQSObj.OptInds = [(real(NQSObj.av)~=0), (imag(NQSObj.av)~=0); (real(NQSObj.Av)~=0),...
-    (imag(NQSObj.Av)~=0); (real(NQSObj.bv)~=0), (imag(NQSObj.bv)~=0);...
-    (real(NQSObj.bv)~=0), (imag(NQSObj.bv)~=0); (real(NQSObj.Wm(:))~=0),...
-    (imag(NQSObj.Wm(:))~=0)];
-
 
 end

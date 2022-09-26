@@ -32,7 +32,7 @@ Nv = NQSObj.Nv; % Number of "visible" spins.
 GraphObj = NQSObj.Graph; BondMap = GraphObj.BondMap; SLInds = GraphObj.SLInds;
 Nsl = max(SLInds); Ntr = numel(BondMap); Ng = GraphObj.N; Alpha = NQSObj.Alpha;
 
-NQSObj.Np = 2*Nsl + Alpha + (Nv * Alpha); % The number of variational parameters.
+NQSObj.Np = 2*Nsl + 2*Alpha + (Nv * Alpha); % The number of variational parameters.
 Nh = Alpha * Ntr; NQSObj.Nh = Nh;
 
 % Initialise the storage:
