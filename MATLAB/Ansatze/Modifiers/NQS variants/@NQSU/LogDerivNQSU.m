@@ -7,8 +7,8 @@ function dLogp = LogDerivNQSU(NQSObj,Cfg)
 % by the structure Cfg.
 % ---------------------------------
 % Format for NQSU Modifier object:
-% - NQSU.Nv = number of "visible" spins.
-% - NQSU.Nh = number of "hidden" spins.
+% - NQSU.Nv = number of "visible" units.
+% - NQSU.Nh = number of "hidden" units.
 % - NQSU.Np = number of parameters in the ansatz = Nmax*Nv + Nh + (Nmax*Nv * Nh).
 % - NQSU.Alpha = number of unique coupling sets or "hidden unit density".
 % - NQSU.VDim = dimensions of the visible units.
@@ -30,7 +30,7 @@ function dLogp = LogDerivNQSU(NQSObj,Cfg)
 % ---------------------------------
 
 % Make local copies to reduce notation in code below.
-Nv = NQSObj.Nv; Nmax = NQSObj.VDim-1; % Number of "visible" spins and visible dimension.
+Nv = NQSObj.Nv; Nmax = NQSObj.VDim-1; % Number of "visible" units and visible dimension.
 % Extract information on translational symmetries from Graph.
 GraphObj = NQSObj.Graph; BondMap = GraphObj.BondMap; SLInds = GraphObj.SLInds;
 
@@ -72,8 +72,7 @@ for a = 1:Alpha
         end
     end
 end
-
 % Do some forward error prevention for NaN or Inf elements by zeroing them:
-dLogp(isnan(dLogp)) = 0;
-dLogp(isinf(dLogp)) = 0;
+dLogp = real(dLogp).*NQSObj.OptInds(:,1) + 1i*imag(dLogp).*NQSObj.OptInds(:,2);
+dLogp(isnan(dLogp)) = 0; dLogp(isinf(dLogp)) = 0;
 end

@@ -5,8 +5,8 @@ function [NQSObj] = AddHiddenNQSB(NQSObj,Params)
 % negative). This will necessitate changes in Nh, Np, b, B, W and Theta.
 % ---------------------------------
 % Format for NQSB Modifier:
-% - NQSB.Nv = number of "visible" spins.
-% - NQSB.Nh = number of "hidden" spins.
+% - NQSB.Nv = number of "visible" units.
+% - NQSB.Nh = number of "hidden" units.
 % - NQSB.Np = number of parameters in the ansatz = Alpha + Alpha*Nv + 2*Nsl.
 % - NQSB.a = (Nv x 1) vector - visible site bias.
 % - NQSB.av = (Nsl x 1) vector - visible bias parameters.
@@ -28,13 +28,14 @@ function [NQSObj] = AddHiddenNQSB(NQSObj,Params)
 AP = round(Params.AlphaP); % Require integer AlphaP.
 
 % Make local copies to reduce notation in code below.
-Nv = NQSObj.Nv; % Number of "visible" spins.
+Nv = NQSObj.Nv; % Number of "visible" units.
 A0 = NQSObj.Alpha; % Starting hidden unit density.
 OptInds = NQSObj.OptInds; % Optimisation indices, arranged [Re(p), Im(p)]
 
 % Extract information on translational symmetries from Graph.
-GraphObj = NQSObj.Graph; BondMap = GraphObj.BondMap; SLInds = GraphObj.SLInds;
-Nsl = max(SLInds); Ntr = numel(BondMap); Ng = GraphObj.N;
+GraphObj = NQSObj.Graph; BondMap = GraphObj.BondMap; Ng = GraphObj.N; SLInds = GraphObj.SLInds;
+Ntr = numel(BondMap); % Number of translates - Nh = Ntr*Alpha.
+Nsl = max(SLInds); % Number of sublattices for da.
 
 bv = NQSObj.bv; Bv = NQSObj.Bv; Wm = NQSObj.Wm;
 

@@ -7,8 +7,8 @@ function dLogp = LogDerivNQSA(NQSObj,Cfg)
 % by the structure Cfg.
 % ---------------------------------
 % Format for NQSA Modifier:
-% - NQSA.Nv = number of "visible" spins.
-% - NQSA.Nh = number of "hidden" spins.
+% - NQSA.Nv = number of "visible" units.
+% - NQSA.Nh = number of "hidden" units.
 % - NQSA.Np = number of parameters in the ansatz = Alpha + Alpha*Nv + 2*Nsl.
 % - NQSA.a = (Nv x 1) vector - visible site bias.
 % - NQSA.av = (Nsl x 1) vector - visible bias parameters.
@@ -30,7 +30,7 @@ function dLogp = LogDerivNQSA(NQSObj,Cfg)
 % ---------------------------------
 
 % Make local copies to reduce notation in code below.
-Nv = NQSObj.Nv; % Number of "visible" spins.
+Nv = NQSObj.Nv; % Number of "visible" units.
 % Extract information on translational symmetries from Graph.
 GraphObj = NQSObj.Graph; BondMap = GraphObj.BondMap; SLInds = GraphObj.SLInds;
 
@@ -71,7 +71,7 @@ for a = 1:Alpha
 end
 
 % Do some forward error prevention for NaN or Inf elements by zeroing them:
-dLogp(isnan(dLogp)) = 0;
-dLogp(isinf(dLogp)) = 0;
+dLogp = real(dLogp).*NQSObj.OptInds(:,1) + 1i*imag(dLogp).*NQSObj.OptInds(:,2);
+dLogp(isnan(dLogp)) = 0; dLogp(isinf(dLogp)) = 0;
 
 end

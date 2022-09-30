@@ -6,8 +6,8 @@ function [Ratio,Update] = PsiRatioNQSU(NQSObj,Diff)
 % difference is stored in Diff.
 % ---------------------------------
 % Format for NQSU Modifier object:
-% - NQSU.Nv = number of "visible" spins.
-% - NQSU.Nh = number of "hidden" spins.
+% - NQSU.Nv = number of "visible" units.
+% - NQSU.Nh = number of "hidden" units.
 % - NQSU.Np = number of parameters in the ansatz = Nmax*Nv + Nh + (Nmax*Nv * Nh).
 % - NQSU.Alpha = number of unique coupling sets or "hidden unit density".
 % - NQSU.VDim = dimensions of the visible units.

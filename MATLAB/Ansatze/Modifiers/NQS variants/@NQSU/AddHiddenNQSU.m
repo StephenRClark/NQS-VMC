@@ -5,8 +5,8 @@ function [NQSObj] = AddHiddenNQSU(NQSObj,Params)
 % negative). This will n-ecessitate changes in Nh, Np, b, W and Theta.
 % ---------------------------------
 % Format for NQSU Modifier object:
-% - NQSU.Nv = number of "visible" spins.
-% - NQSU.Nh = number of "hidden" spins.
+% - NQSU.Nv = number of "visible" units.
+% - NQSU.Nh = number of "hidden" units.
 % - NQSU.Np = number of parameters in the ansatz = Nmax*Nv + Nh + (Nmax*Nv * Nh).
 % - NQSU.Alpha = number of unique coupling sets or "hidden unit density".
 % - NQSU.VDim = dimensions of the visible units.
@@ -24,12 +24,14 @@ function [NQSObj] = AddHiddenNQSU(NQSObj,Params)
 AP = round(Params.AlphaP); % Require integer AlphaP.
 
 % Make local copies to reduce notation in code below.
-Nv = NQSObj.Nv; Nmax = NQSObj.VDim-1; % Number of "visible" spins and visible dimension.
+Nv = NQSObj.Nv; Nmax = NQSObj.VDim-1; % Number of "visible" units and visible dimension.
 A0 = NQSObj.Alpha; % Number of unique coupling sets.
 OptInds = NQSObj.OptInds; % Optimisation indices, arranged [Re(p), Im(p)]
 
-GraphObj = NQSObj.Graph; BondMap = GraphObj.BondMap; SLInds = GraphObj.SLInds;
-Nsl = max(SLInds); Ntr = numel(BondMap); Ng = GraphObj.N;
+% Extract information on translational symmetries from Graph.
+GraphObj = NQSObj.Graph; BondMap = GraphObj.BondMap; Ng = GraphObj.N; SLInds = GraphObj.SLInds;
+Ntr = numel(BondMap); % Number of translates - Nh = Ntr*Alpha.
+Nsl = max(SLInds); % Number of sublattices for da.
 
 bv = NQSObj.bv; Wm = NQSObj.Wm; 
 

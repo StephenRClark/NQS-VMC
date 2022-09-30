@@ -1,7 +1,7 @@
-% --- General NQS wave function parameter overwrite function ---
+% --- General NQS wave function update function ---
 
-function NQSObj = ParamLoadNQSP(NQSObj,P)
-% This function replaces the NQS parameters of the ansatz from a vector of
+function NQSObj = PsiUpdateNQSP(NQSObj,P)
+% This function updates the NQS parameters of the ansatz from a vector of
 % parameters P.
 % ---------------------------------
 % Format for NQSP Modifier:
@@ -42,6 +42,8 @@ GraphObj = NQSObj.Graph; BondMap = GraphObj.BondMap; SLInds = GraphObj.SLInds;
 Ntr = numel(BondMap); % Number of translates - Nh = Ntr*Alpha.
 Nsl = max(SLInds); % Number of sublattices for da.
 
+P = real(P).*NQSObj.OptInds(:,1) + 1i*imag(P).*NQSObj.OptInds(:,2); % Zeroes out any undesired parameter changes.
+
 % Unpack the changes in parameters of the NQS:
 da = reshape(P(1:Nsl*VOrder),VOrder,Nsl).';
 db = reshape(P((1:Alpha*HOrder)+Nsl*VOrder),HOrder,Alpha).';
@@ -49,9 +51,9 @@ dW = permute(reshape(P((1:Alpha*Nv*HOrder*VOrder)+Nsl*VOrder+Alpha*HOrder),...
     VOrder,HOrder,Nv,Alpha),[4 3 2 1]);
 
 % Apply updates to the ansatz:
-NQSObj.av = da;
-NQSObj.bv = db;
-NQSObj.Wm = dW;
+NQSObj.av = NQSObj.av + da;
+NQSObj.bv = NQSObj.bv + db;
+NQSObj.Wm = NQSObj.Wm + dW;
 
 cap = NQSObj.ParamCap;
 
@@ -70,8 +72,6 @@ NQSObj.Wm(isinf(NQSObj.Wm)) = 0;
 NQSObj.Wm(isnan(NQSObj.Wm)) = 0;
 ind = abs(NQSObj.Wm)>cap;
 NQSObj.Wm(ind) = sign(NQSObj.Wm(ind))*cap;
-
-NQSObj.OptInds = [(real(P)~=0), (imag(P)~=0)]; % Assume the non-zero parameters are intended to be varied.
 
 % Repackage the av, bv and Wm to usual NQS form.
 for n = 1:Nv

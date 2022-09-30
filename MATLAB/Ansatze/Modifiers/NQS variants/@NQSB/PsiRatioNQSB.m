@@ -6,8 +6,8 @@ function [Ratio,Update] = PsiRatioNQSB(NQSObj,Diff)
 % difference is stored in Diff.
 % ---------------------------------
 % Format for NQSB Modifier:
-% - NQSB.Nv = number of "visible" spins.
-% - NQSB.Nh = number of "hidden" spins.
+% - NQSB.Nv = number of "visible" units.
+% - NQSB.Nh = number of "hidden" units.
 % - NQSB.Np = number of parameters in the ansatz = Alpha + Alpha*Nv + 2*Nsl.
 % - NQSB.a = (Nv x 1) vector - visible site bias.
 % - NQSB.av = (Nsl x 1) vector - visible bias parameters.

@@ -6,8 +6,8 @@ classdef NQSA < Modifier
     
     % ---------------------------------
     % Format for NQSA Modifier:
-    % - NQSA.Nv = number of "visible" spins.
-    % - NQSA.Nh = number of "hidden" spins.
+    % - NQSA.Nv = number of "visible" units.
+    % - NQSA.Nh = number of "hidden" units.
     % - NQSA.Np = number of parameters in the ansatz = Alpha + Alpha*Nv + 2*Nsl.
     % - NQSA.a = (Nv x 1) vector - visible site bias.
     % - NQSA.av = (Nsl x 1) vector - visible bias parameters.
@@ -39,7 +39,7 @@ classdef NQSA < Modifier
     properties (SetAccess = protected) % Default to one visible, one hidden plus state with no input.
         Np = 2; % Number of parameters.
         Nv = 1; % Number of visible neurons.
-        Nh = 1; % Number of hidden spins.
+        Nh = 1; % Number of hidden units.
         Alpha = 1; % Hidden unit density.
         a = 0; % Visible site bias terms, Nv x 1 vector.
         av = 0; % Visible bias parameters, Nsl x 1 vector.
@@ -179,8 +179,8 @@ classdef NQSA < Modifier
                 end
             end
             % Do some forward error prevention for NaN or Inf elements by zeroing them:
-            dLogp(isnan(dLogp)) = 0;
-            dLogp(isinf(dLogp)) = 0;
+            dLogp = real(dLogp).*NQSObj.OptInds(:,1) + 1i*imag(dLogp).*NQSObj.OptInds(:,2);
+            dLogp(isnan(dLogp)) = 0; dLogp(isinf(dLogp)) = 0;
         end
         
         % ParamList: outputs a Np x 1 vector of parameters.

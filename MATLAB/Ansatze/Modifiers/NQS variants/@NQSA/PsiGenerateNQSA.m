@@ -7,8 +7,8 @@ function [Psi] = PsiGenerateNQSA(NQSObj,Basis)
 % number of sites is small.
 % ---------------------------------
 % Format for NQSA Modifier:
-% - NQSA.Nv = number of "visible" spins.
-% - NQSA.Nh = number of "hidden" spins.
+% - NQSA.Nv = number of "visible" units.
+% - NQSA.Nh = number of "hidden" units.
 % - NQSA.Np = number of parameters in the ansatz = Alpha + Alpha*Nv + 2*Nsl.
 % - NQSA.a = (Nv x 1) vector - visible site bias.
 % - NQSA.av = (Nsl x 1) vector - visible bias parameters.
@@ -25,13 +25,14 @@ function [Psi] = PsiGenerateNQSA(NQSObj,Basis)
 
 % Basis should be a N_cfg x N matrix. Ensure visible biases align with
 % configurations.
-A = (NQSObj.A.').*ones(size(Basis,1),1); a = (NQSObj.a.').*ones(size(Basis,1),1); 
+N_cfgs = size(Basis,1);
+A = (NQSObj.A.').*ones(N_cfgs,1); a = (NQSObj.a.').*ones(N_cfgs,1); 
 Psi = exp(sum(A.*(Basis.^2) + (a.*Basis),2)); % Visible bias contributions handled here.
 for h = 1:NQSObj.Nh
     Theta = sum(Basis .* NQSObj.W(h,:),2) + NQSObj.b(h);
     Psi = Psi .* cosh(Theta);
 end
-if isinf(max(abs(Psi))) == 0
+if ~isinf(max(abs(Psi)))
     Psi = Psi/max(abs(Psi)); % Pre-normalisation to avoid runaway arguments:
 end
 ModPsi = sqrt(sum(abs(Psi).^2));

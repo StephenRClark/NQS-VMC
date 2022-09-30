@@ -5,8 +5,8 @@ function [NQSObj] = PsiCfgUpdateNQSA(NQSObj,Update)
 % (effective angles) retained in the NQS ansatz.
 % ---------------------------------
 % Format for NQSA Modifier:
-% - NQSA.Nv = number of "visible" spins.
-% - NQSA.Nh = number of "hidden" spins.
+% - NQSA.Nv = number of "visible" units.
+% - NQSA.Nh = number of "hidden" units.
 % - NQSA.Np = number of parameters in the ansatz = Alpha + Alpha*Nv + 2*Nsl.
 % - NQSA.a = (Nv x 1) vector - visible site bias.
 % - NQSA.av = (Nsl x 1) vector - visible bias parameters.

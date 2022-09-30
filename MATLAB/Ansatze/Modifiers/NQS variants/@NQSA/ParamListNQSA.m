@@ -5,8 +5,8 @@ function [Params] = ParamListNQSA(NQSObj)
 % single vector.
 % ---------------------------------
 % Format for NQSA Modifier:
-% - NQSA.Nv = number of "visible" spins.
-% - NQSA.Nh = number of "hidden" spins.
+% - NQSA.Nv = number of "visible" units.
+% - NQSA.Nh = number of "hidden" units.
 % - NQSA.Np = number of parameters in the ansatz = Alpha + Alpha*Nv + 2*Nsl.
 % - NQSA.a = (Nv x 1) vector - visible site bias.
 % - NQSA.av = (Nsl x 1) vector - visible bias parameters.
@@ -27,16 +27,8 @@ function [Params] = ParamListNQSA(NQSObj)
 % - (Alpha*Nv x 1) for d/dW.
 % ---------------------------------
 
-% Make local copies to reduce notation in code below.
-Nv = NQSObj.Nv; % Number of "visible" spins.
-% Extract information on translational symmetries from Graph.
-GraphObj = NQSObj.Graph; SLInds = GraphObj.SLInds;
-Nsl = max(SLInds); Alpha = NQSObj.Alpha;
-
 Params = zeros(NQSObj.Np,1);
 
-Params(1:Nsl) = NQSObj.av;
-Params((1:Nsl)+Nsl) = NQSObj.Av;
-Params((1:Alpha)+2*Nsl) = NQSObj.bv;
-Params((1:(Alpha*Nv))+2*Nsl+Alpha) = reshape(NQSObj.Wm.',Alpha*Nv,1);
+W_shift = NQSObj.Wm.';
+Params = Params + [NQSObj.av; NQSObj.Av; NQSObj.b; W_shift(:)]; % Will throw error if not same length.
 end

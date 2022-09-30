@@ -6,8 +6,8 @@ function [NQSObj] = RandomInitPsiNQSB(NQSObj,Params)
 % contains information controlling the form of random elements generated.
 % ---------------------------------
 % Format for NQSB Modifier:
-% - NQSB.Nv = number of "visible" spins.
-% - NQSB.Nh = number of "hidden" spins.
+% - NQSB.Nv = number of "visible" units.
+% - NQSB.Nh = number of "hidden" units.
 % - NQSB.Np = number of parameters in the ansatz = Alpha + Alpha*Nv + 2*Nsl.
 % - NQSB.a = (Nv x 1) vector - visible site bias.
 % - NQSB.av = (Nsl x 1) vector - visible bias parameters.
@@ -26,14 +26,16 @@ function [NQSObj] = RandomInitPsiNQSB(NQSObj,Params)
 % ---------------------------------
 
 % Make local copies to reduce notation in code below.
-Nv = NQSObj.Nv; % Number of "visible" spins.
+Nv = NQSObj.Nv; % Number of "visible" units.
+Alpha = NQSObj.Alpha; % Density of "hidden" units.
 
 % Extract information on translational symmetries from Graph.
-GraphObj = NQSObj.Graph; BondMap = GraphObj.BondMap; SLInds = GraphObj.SLInds;
-Nsl = max(SLInds); Ntr = numel(BondMap); Ng = GraphObj.N; Alpha = NQSObj.Alpha;
+GraphObj = NQSObj.Graph; BondMap = GraphObj.BondMap; Ng = GraphObj.N; SLInds = GraphObj.SLInds;
+Ntr = numel(BondMap); % Number of translates - Nh = Ntr*Alpha.
+Nsl = max(SLInds); % Number of sublattices for da.
 
 NQSObj.Np = 2*Nsl + 2*Alpha + (Nv * Alpha); % The number of variational parameters.
-Nh = Alpha * Ntr; NQSObj.Nh = Nh;
+Nh = Alpha * Ntr; NQSObj.Nh = Nh; % The number of hidden units, including translates.
 
 % Initialise the storage:
 NQSObj.a = zeros(Nv,1);
@@ -87,6 +89,8 @@ for al = 1:Alpha
         end
     end
 end
+
+% Set optimisation indicies.
 
 NQSObj.OptInds = [(real(NQSObj.av)~=0), (imag(NQSObj.av)~=0); (real(NQSObj.Av)~=0),...
     (imag(NQSObj.Av)~=0); (real(NQSObj.bv)~=0), (imag(NQSObj.bv)~=0);...

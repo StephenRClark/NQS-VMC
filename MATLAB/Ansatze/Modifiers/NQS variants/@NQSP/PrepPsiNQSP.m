@@ -5,8 +5,8 @@ function [NQSObj] = PrepPsiNQSP(NQSObj,Cfg)
 % information (effective angle theta) given an initial configuration.
 % ---------------------------------
 % Format for NQSP Modifier:
-% - NQSP.Nv = number of "visible" spins.
-% - NQSP.Nh = number of "hidden" spins.
+% - NQSP.Nv = number of "visible" units.
+% - NQSP.Nh = number of "hidden" units.
 % - NQSP.Np = number of parameters in the ansatz = (Nsl x VOrder) + (Alpha x
 % HOrder) + (Nv x VOrder)(Alpha x HOrder)
 % - NQSP.VDim = dimension of the visible units.

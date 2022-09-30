@@ -7,8 +7,8 @@ function dLogp = LogDerivNQSB(NQSObj,Cfg)
 % by the structure Cfg.
 % ---------------------------------
 % Format for NQSB Modifier:
-% - NQSB.Nv = number of "visible" spins.
-% - NQSB.Nh = number of "hidden" spins.
+% - NQSB.Nv = number of "visible" units.
+% - NQSB.Nh = number of "hidden" units.
 % - NQSB.Np = number of parameters in the ansatz = Alpha + Alpha*Nv + 2*Nsl.
 % - NQSB.a = (Nv x 1) vector - visible site bias.
 % - NQSB.av = (Nsl x 1) vector - visible bias parameters.
@@ -34,11 +34,11 @@ function dLogp = LogDerivNQSB(NQSObj,Cfg)
 % ---------------------------------
 
 % Make local copies to reduce notation in code below.
-Nv = NQSObj.Nv; % Number of "visible" spins.
+Nv = NQSObj.Nv; % Number of "visible" units.
+Alpha = NQSObj.Alpha; % Density of "hidden" units.
+
 % Extract information on translational symmetries from Graph.
 GraphObj = NQSObj.Graph; BondMap = GraphObj.BondMap; SLInds = GraphObj.SLInds;
-
-Alpha = NQSObj.Alpha; % Number of unique coupling sets.
 Ntr = numel(BondMap); % Number of translates - Nh = Ntr*Alpha.
 Nsl = max(SLInds); % Number of sublattices for da.
 
@@ -57,16 +57,16 @@ end
 
 dTheta = dT_NTrace(NQSObj.Theta,NQSObj.B,NQSObj.HDim);
 dB = dB_NHTrace(NQSObj.Theta,NQSObj.B,NQSObj.HDim);
-for al = 1:NQSObj.Alpha
-    bInd = 2*Nsl + al; BInd = bInd + NQSObj.Alpha;
+for al = 1:Alpha
+    bInd = 2*Nsl + al; BInd = bInd + Alpha;
     if sum(NQSObj.OptInds(bInd,:)) ~= 0
         dLogp(bInd) = sum(dTheta((1:Ntr)+(al-1)*Ntr)); % Insert d/db.
     end
     if sum(NQSObj.OptInds(BInd,:)) ~= 0
         dLogp(BInd) = sum(dB((1:Ntr)+(al-1)*Ntr)); % Insert d/dB.
     end
-    for v = 1:NQSObj.Nv
-        PInd = 2*Nsl + 2*NQSObj.Alpha + (al-1)*NQSObj.Nv + v;
+    for v = 1:Nv
+        PInd = 2*Nsl + 2*Alpha + (al-1)*Nv + v;
         if sum(NQSObj.OptInds(PInd,:)) ~= 0
             for bd = 1:numel(BondMap)
                 HInd = bd + (al-1)*Ntr; VInd = BondMap{bd}(v);
@@ -79,7 +79,7 @@ for al = 1:NQSObj.Alpha
 end
 
 % Do some forward error prevention for NaN or Inf elements by zeroing them:
-dLogp(isnan(dLogp)) = 0;
-dLogp(isinf(dLogp)) = 0;
+dLogp = real(dLogp).*NQSObj.OptInds(:,1) + 1i*imag(dLogp).*NQSObj.OptInds(:,2);
+dLogp(isnan(dLogp)) = 0; dLogp(isinf(dLogp)) = 0;
 
 end

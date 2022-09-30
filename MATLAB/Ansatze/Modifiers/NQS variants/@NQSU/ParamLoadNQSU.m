@@ -5,8 +5,8 @@ function NQSObj = ParamLoadNQSU(NQSObj,P)
 % parameters P.
 % ---------------------------------
 % Format for NQSU Modifier object:
-% - NQSU.Nv = number of "visible" spins.
-% - NQSU.Nh = number of "hidden" spins.
+% - NQSU.Nv = number of "visible" units.
+% - NQSU.Nh = number of "hidden" units.
 % - NQSU.Np = number of parameters in the ansatz = Nmax*Nv + Nh + (Nmax*Nv * Nh).
 % - NQSU.Alpha = number of unique coupling sets or "hidden unit density".
 % - NQSU.VDim = dimensions of the visible units.
@@ -28,10 +28,13 @@ function NQSObj = ParamLoadNQSU(NQSObj,P)
 % ---------------------------------
 
 % Make local copies to reduce notation in code below.
-Nv = NQSObj.Nv; Nmax = NQSObj.VDim-1; % Number of "visible" spins and visible dimension.
+Nv = NQSObj.Nv; Nmax = NQSObj.VDim-1; % Number of "visible" units and visible dimension.
+Alpha = NQSObj.Alpha; % Density of "hidden" units.
+
 % Extract information on translational symmetries from Graph.
-GraphObj = NQSObj.Graph; BondMap = GraphObj.BondMap; SLInds = GraphObj.SLInds;
-Nsl = max(SLInds); Ntr = numel(BondMap); Ng = GraphObj.N; Alpha = NQSObj.Alpha;
+GraphObj = NQSObj.Graph; BondMap = GraphObj.BondMap; Ng = GraphObj.N; SLInds = GraphObj.SLInds;
+Ntr = numel(BondMap); % Number of translates - Nh = Ntr*Alpha.
+Nsl = max(SLInds); % Number of sublattices for da.
 
 % Unpack the changes in parameters of the NQS:
 da = P(1:(Nmax*Nsl));
@@ -67,8 +70,6 @@ NQSObj.Wm(ind) = sign(real(NQSObj.Wm(ind)))*cap + 1i*imag(NQSObj.Wm(ind));
 ind = abs(imag(NQSObj.Wm))>pi;
 NQSObj.Wm(ind) = real(NQSObj.Wm(ind)) + 1i*(mod(imag(NQSObj.Wm(ind))+pi,2*pi)-pi);
 
-NQSObj.OptInds = [(real(P)~=0), (imag(P)~=0)]; % Assume the non-zero parameters are intended to be varied.
-
 % Repackage the parameters in the necessary form.
 for n = 1:Nv
     for v = 1:Nmax
@@ -91,5 +92,8 @@ for al = 1:Alpha
         end
     end
 end
+
+% Set optimisation indicies.
+NQSObj.OptInds = [(real(P)~=0), (imag(P)~=0)]; % Assume the non-zero parameters are intended to be varied.
 
 end

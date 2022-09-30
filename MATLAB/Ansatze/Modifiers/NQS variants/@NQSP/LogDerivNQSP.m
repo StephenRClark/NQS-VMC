@@ -7,8 +7,8 @@ function dLogp = LogDerivNQSP(NQSObj,Cfg)
 % by the structure Cfg.
 % ---------------------------------
 % Format for NQSP Modifier:
-% - NQSP.Nv = number of "visible" spins.
-% - NQSP.Nh = number of "hidden" spins.
+% - NQSP.Nv = number of "visible" units.
+% - NQSP.Nh = number of "hidden" units.
 % - NQSP.Np = number of parameters in the ansatz = (Nsl x VOrder) + (Alpha x
 % HOrder) + (Nv x VOrder)(Alpha x HOrder)
 % - NQSP.VDim = dimension of the visible units.
@@ -36,8 +36,8 @@ function dLogp = LogDerivNQSP(NQSObj,Cfg)
 % ---------------------------------
 
 % Make local copies to reduce notation in code below.
-Nv = NQSObj.Nv; % Number of "visible" spins.
-Alpha = NQSObj.Alpha; % Density of "hidden" spins.
+Nv = NQSObj.Nv; % Number of "visible" units.
+Alpha = NQSObj.Alpha; % Density of "hidden" units.
 HOrder = NQSObj.HOrder; HDim = NQSObj.HDim;
 VOrder = NQSObj.VOrder; VDim = NQSObj.VDim;
 Rescale = NQSObj.Rescale;
@@ -87,6 +87,5 @@ for al = 1:Alpha
 end
 % Do some forward error prevention for NaN or Inf elements by zeroing them:
 dLogp = real(dLogp).*NQSObj.OptInds(:,1) + 1i*imag(dLogp).*NQSObj.OptInds(:,2);
-dLogp(isnan(dLogp)) = 0;
-dLogp(isinf(dLogp)) = 0;
+dLogp(isnan(dLogp)) = 0; dLogp(isinf(dLogp)) = 0;
 end

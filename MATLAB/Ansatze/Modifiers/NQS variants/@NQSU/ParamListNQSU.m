@@ -5,8 +5,8 @@ function [Params] = ParamListNQSU(NQSObj)
 % single vector.
 % ---------------------------------
 % Format for NQSU Modifier object:
-% - NQSU.Nv = number of "visible" spins.
-% - NQSU.Nh = number of "hidden" spins.
+% - NQSU.Nv = number of "visible" units.
+% - NQSU.Nh = number of "hidden" units.
 % - NQSU.Np = number of parameters in the ansatz = Nmax*Nv + Nh + (Nmax*Nv * Nh).
 % - NQSU.Alpha = number of unique coupling sets or "hidden unit density".
 % - NQSU.VDim = dimensions of the visible units.
@@ -27,11 +27,8 @@ function [Params] = ParamListNQSU(NQSObj)
 % Arranged [a, v, vd], [a, v, vd+1], ... ,[a, v+1, vd], ...
 % ---------------------------------
 
-Nv = NQSObj.Nv; Alpha = NQSObj.Alpha; Nmax = NQSObj.VDim-1; Nsl = max(NQSObj.Graph.SLInds);
-
 Params = zeros(NQSObj.Np,1);
 
-Params(1:(Nmax*Nsl)) = NQSObj.av;
-Params((1:Alpha)+Nmax*Nsl) = NQSObj.bv;
-Params((1:(Alpha*Nmax*Nv))+Alpha+Nmax*Nsl) = reshape(NQSObj.Wm.',Alpha*Nmax*Nv,1);
+a_shift = NQSObj.av.'; W_shift = NQSObj.Wm.';
+Params = Params + [a_shift(:); NQSObj.bv; W_shift(:)]; % Will throw error if not same length.
 end

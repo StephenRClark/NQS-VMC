@@ -5,8 +5,8 @@ function NQSObj = ParamLoadNQSB(NQSObj,P)
 % parameters P.
 % ---------------------------------
 % Format for NQSB Modifier:
-% - NQSB.Nv = number of "visible" spins.
-% - NQSB.Nh = number of "hidden" spins.
+% - NQSB.Nv = number of "visible" units.
+% - NQSB.Nh = number of "hidden" units.
 % - NQSB.Np = number of parameters in the ansatz = Alpha + Alpha*Nv + 2*Nsl.
 % - NQSB.a = (Nv x 1) vector - visible site bias.
 % - NQSB.av = (Nsl x 1) vector - visible bias parameters.
@@ -32,10 +32,13 @@ function NQSObj = ParamLoadNQSB(NQSObj,P)
 % ---------------------------------
 
 % Make local copies to reduce notation in code below.
-Nv = NQSObj.Nv; % Number of "visible" spins.
+Nv = NQSObj.Nv; % Number of "visible" units.
+Alpha = NQSObj.Alpha; % Density of "hidden" units.
+
 % Extract information on translational symmetries from Graph.
-GraphObj = NQSObj.Graph; BondMap = GraphObj.BondMap; SLInds = GraphObj.SLInds;
-Nsl = max(SLInds); Ntr = numel(BondMap); Ng = GraphObj.N; Alpha = NQSObj.Alpha;
+GraphObj = NQSObj.Graph; BondMap = GraphObj.BondMap; Ng = GraphObj.N; SLInds = GraphObj.SLInds;
+Ntr = numel(BondMap); % Number of translates - Nh = Ntr*Alpha.
+Nsl = max(SLInds); % Number of sublattices for da.
 
 % Unpack the changes in parameters of the NQS:
 da = P(1:Nsl);

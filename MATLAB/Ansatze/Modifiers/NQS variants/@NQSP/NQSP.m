@@ -8,8 +8,8 @@ classdef NQSP < NQS
     
     % ---------------------------------
     % Format for NQSP Modifier:
-    % - NQSP.Nv = number of "visible" spins.
-    % - NQSP.Nh = number of "hidden" spins.
+    % - NQSP.Nv = number of "visible" units.
+    % - NQSP.Nh = number of "hidden" units.
     % - NQSP.Np = number of parameters in the ansatz = (Nsl x VOrder) + (Alpha x
     % HOrder) + (Nv x VOrder)(Alpha x HOrder)
     % - NQSP.VDim = dimension of the visible units.
@@ -43,7 +43,7 @@ classdef NQSP < NQS
     properties (SetAccess = protected) % Default to one visible, one hidden plus state with no input.
         Np = 2; % Number of parameters.
         Nv = 1; % Number of visible neurons.
-        Nh = 1; % Number of hidden spins.
+        Nh = 1; % Number of hidden units.
         Alpha = 1; % Hidden unit density.
         VDim = 1; % Visible unit dimension.
         HDim = 1; % Hidden unit dimension.

@@ -5,8 +5,8 @@ function [Params] = ParamListNQSB(NQSObj)
 % single vector.
 % ---------------------------------
 % Format for NQSB Modifier:
-% - NQSB.Nv = number of "visible" spins.
-% - NQSB.Nh = number of "hidden" spins.
+% - NQSB.Nv = number of "visible" units.
+% - NQSB.Nh = number of "hidden" units.
 % - NQSB.Np = number of parameters in the ansatz = Alpha + Alpha*Nv + 2*Nsl.
 % - NQSB.a = (Nv x 1) vector - visible site bias.
 % - NQSB.av = (Nsl x 1) vector - visible bias parameters.
@@ -31,17 +31,8 @@ function [Params] = ParamListNQSB(NQSObj)
 % - (Alpha*Nv x 1) for d/dW.
 % ---------------------------------
 
-% Make local copies to reduce notation in code below.
-Nv = NQSObj.Nv; % Number of "visible" spins.
-% Extract information on translational symmetries from Graph.
-GraphObj = NQSObj.Graph; SLInds = GraphObj.SLInds;
-Nsl = max(SLInds); Alpha = NQSObj.Alpha;
-
 Params = zeros(NQSObj.Np,1);
 
-Params(1:Nsl) = NQSObj.av;
-Params((1:Nsl)+Nsl) = NQSObj.Av;
-Params((1:Alpha)+2*Nsl) = NQSObj.bv;
-Params((1:Alpha)+2*Nsl+Alpha) = NQSObj.Bv;
-Params((1:(Alpha*Nv))+2*Nsl+2*Alpha) = reshape(NQSObj.Wm.',Alpha*Nv,1);
+W_vec = NQSObj.Wm.';
+Params = Params + [NQSObj.av; NQSObj.Av; NQSObj.bv; NQSObj.Bv; W_vec(:)]; % Will throw error if not same length.
 end

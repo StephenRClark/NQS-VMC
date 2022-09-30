@@ -5,8 +5,8 @@ function [NQSObj] = PrepPsiNQSB(NQSObj,Cfg)
 % information (effective angle theta) given an initial configuration.
 % ---------------------------------
 % Format for NQSB Modifier:
-% - NQSB.Nv = number of "visible" spins.
-% - NQSB.Nh = number of "hidden" spins.
+% - NQSB.Nv = number of "visible" units.
+% - NQSB.Nh = number of "hidden" units.
 % - NQSB.Np = number of parameters in the ansatz = Alpha + Alpha*Nv + 2*Nsl.
 % - NQSB.a = (Nv x 1) vector - visible site bias.
 % - NQSB.av = (Nsl x 1) vector - visible bias parameters.
@@ -28,7 +28,7 @@ function [NQSObj] = PrepPsiNQSB(NQSObj,Cfg)
 % Update.NsqVec - vector of new squared visible occupancies.
 % ---------------------------------
 
-[Cfg_vec] = NQSObj.FullCfg(Cfg); % Convert Cfg structure into a spin configuration vector.
+[Cfg_vec] = NQSObj.FullCfg(Cfg); % Convert Cfg structure into a configuration vector.
 NQSObj.Theta = NQSObj.b + NQSObj.W*Cfg_vec; % Compute the effective angle for this configuration state.
 NQSObj.NsqVec = Cfg_vec.^2; % Log the initial configuration's square values.
 end

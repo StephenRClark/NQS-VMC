@@ -7,8 +7,8 @@ classdef NQSB < Modifier
     
     % ---------------------------------
     % Format for NQSB Modifier:
-    % - NQSB.Nv = number of "visible" spins.
-    % - NQSB.Nh = number of "hidden" spins.
+    % - NQSB.Nv = number of "visible" units.
+    % - NQSB.Nh = number of "hidden" units.
     % - NQSB.Np = number of parameters in the ansatz = Alpha + Alpha*Nv + 2*Nsl.
     % - NQSB.a = (Nv x 1) vector - visible site bias.
     % - NQSB.av = (Nsl x 1) vector - visible bias parameters.
@@ -44,7 +44,7 @@ classdef NQSB < Modifier
     properties (SetAccess = protected) % Default to one visible, one hidden plus state with no input.
         Np = 2; % Number of parameters.
         Nv = 1; % Number of visible neurons.
-        Nh = 1; % Number of hidden spins.
+        Nh = 1; % Number of hidden units.
         Alpha = 1; % Hidden unit density.
         HDim = 1; % Hidden unit dimension.
         a = 0; % Visible site bias terms, Nv x 1 vector.
@@ -198,8 +198,7 @@ classdef NQSB < Modifier
             end
             % Do some forward error prevention for NaN or Inf elements by zeroing them:
             dLogp = real(dLogp).*obj.OptInds(:,1) + 1i*imag(dLogp).*obj.OptInds(:,2);
-            dLogp(isnan(dLogp)) = 0;
-            dLogp(isinf(dLogp)) = 0;
+            dLogp(isnan(dLogp)) = 0; dLogp(isinf(dLogp)) = 0;
         end
         
         % ParamList: outputs a Np x 1 vector of parameters.

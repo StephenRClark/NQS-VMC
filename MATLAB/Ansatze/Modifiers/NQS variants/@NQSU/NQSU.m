@@ -1,14 +1,14 @@
 classdef NQSU < Modifier
     % NQSU - a Modifier subclass that modifies configuration amplitudes
     % using a Restricted Boltzmann Machine architecture of visible neurons
-    % and hidden spins. U is a parameter-reduced version of OH.
+    % and hidden units. U is a parameter-reduced version of OH.
     %   Modifier is the overarching class. NQSU pulls translational
     %   symmetries from the provided Graph object.
     
     % ---------------------------------
     % Format for NQSU Modifier object:
-    % - NQSU.Nv = number of "visible" spins.
-    % - NQSU.Nh = number of "hidden" spins.
+    % - NQSU.Nv = number of "visible" units.
+    % - NQSU.Nh = number of "hidden" units.
     % - NQSU.Np = number of parameters in the ansatz = Nmax*Nv + Nh + (Nmax*Nv * Nh).
     % - NQSU.Alpha = number of unique coupling sets or "hidden unit density".
     % - NQSU.VDim = dimensions of the visible units.
@@ -39,7 +39,7 @@ classdef NQSU < Modifier
     properties (SetAccess = protected)
         Np = 1; % Number of parameters.
         Nv = 1; % Number of visible neurons.
-        Nh = 1; % Number of hidden spins.
+        Nh = 1; % Number of hidden units.
         Alpha = 1; % Hidden unit density.
         VDim = 1; % Visible site dimension.
         a = 0; % Visible site bias terms, Nv x 1 vector.
@@ -187,8 +187,9 @@ classdef NQSU < Modifier
                     end
                 end
             end
-            dLogp(isnan(dLogp)) = 0;
-            dLogp(isinf(dLogp)) = 0;
+            % Do some forward error prevention for NaN or Inf elements by zeroing them:
+            dLogp = real(dLogp).*NQSObj.OptInds(:,1) + 1i*imag(dLogp).*NQSObj.OptInds(:,2);
+            dLogp(isnan(dLogp)) = 0; dLogp(isinf(dLogp)) = 0;
         end
         
         % ParamList: outputs an Np x 1 vector of parameter values.
