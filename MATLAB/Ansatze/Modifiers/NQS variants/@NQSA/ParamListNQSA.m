@@ -30,5 +30,5 @@ function [Params] = ParamListNQSA(NQSObj)
 Params = zeros(NQSObj.Np,1);
 
 W_shift = NQSObj.Wm.';
-Params = Params + [NQSObj.av; NQSObj.Av; NQSObj.b; W_shift(:)]; % Will throw error if not same length.
+Params = Params + [NQSObj.av; NQSObj.Av; NQSObj.bv; W_shift(:)]; % Will throw error if not same length.
 end

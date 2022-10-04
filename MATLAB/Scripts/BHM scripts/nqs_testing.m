@@ -1,3 +1,5 @@
+addpath(genpath("..\..\Ansatze"),genpath("..\..\Graphs"),genpath("..\..\Hilbert"));
+
 Dim = [4 4]; N = prod(Dim); Bound = [1 1]; LVecs = eye(2);
 GraphObj = HypCub(Dim,Bound,LVecs,1);
 
@@ -10,8 +12,9 @@ ModParams.nmag = 0; ModParams.nphs = 0;
 NQSA_test = NQSA(HilbertObj,GraphObj,ModParams,1);
 NQSB_test = NQSB(HilbertObj,GraphObj,ModParams,1);
 NQSU_test = NQSU(HilbertObj,GraphObj,ModParams,1);
+NQSM_test = NQSM(HilbertObj,GraphObj,ModParams,1);
 
-NewNQSArray = {NQSA_test; NQSB_test; NQSU_test};
+NewNQSArray = {NQSA_test; NQSB_test; NQSU_test; NQSM_test};
 
 Cfg_test = HilbertObj.RandomCfg(); [Diff,CfgD_test] = HilbertObj.PropMove(Cfg_test);
 RatioTester = [Cfg_test.occ.'; CfgD_test.occ.'];
@@ -76,7 +79,7 @@ end
 % Testing AddHidden works correctly:
 NewNQSA2 = NewNQSArray{a}.AddHidden(ModParams);
 Params_read = NewNQSA2.ParamList();
-if (sum(Params_read)~=sum(Params)) || (numel(Params_read)<numel(Params))
+if (abs(sum(Params_read)-sum(Params))>1e-12) || (numel(Params_read)<numel(Params))
     disp('Test failed: AddHidden');
     disp(['Length of new Params: ' num2str(length(Params_read))]);
     disp(['New number of parameters: ' num2str(NewNQSA2.Np)]);
