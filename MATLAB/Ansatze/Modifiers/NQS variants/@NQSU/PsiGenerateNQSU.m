@@ -36,7 +36,7 @@ for b = 1:N_cfgs
     Psi(b) = exp(sum(NQSObj.a.*UVec)) * prod(cosh(Theta(:)));
 end
 if ~isinf(max(abs(Psi)))
-    Psi = Psi/max(abs(Psi)); % Pre-normalisation to avoid runaway arguments:
+    Psi = Psi/max(abs(Psi)); % Pre-normalisation to avoid runaway arguments.
 end
 ModPsi = sqrt(sum(abs(Psi).^2));
 Psi = Psi/ModPsi;

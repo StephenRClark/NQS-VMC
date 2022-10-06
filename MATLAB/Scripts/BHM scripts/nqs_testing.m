@@ -9,12 +9,13 @@ ModParams.Alpha = 1; ModParams.HDim = 5; ModParams.AlphaP = 1;
 ModParams.a = 0; ModParams.b = 0; ModParams.W = 0;
 ModParams.nmag = 0; ModParams.nphs = 0;
 
+NQS_test = NQS(HilbertObj,GraphObj,ModParams,1);
 NQSA_test = NQSA(HilbertObj,GraphObj,ModParams,1);
 NQSB_test = NQSB(HilbertObj,GraphObj,ModParams,1);
 NQSU_test = NQSU(HilbertObj,GraphObj,ModParams,1);
 NQSM_test = NQSM(HilbertObj,GraphObj,ModParams,1);
 
-NewNQSArray = {NQSA_test; NQSB_test; NQSU_test; NQSM_test};
+NewNQSArray = {NQS_test; NQSA_test; NQSB_test; NQSU_test; NQSM_test};
 
 Cfg_test = HilbertObj.RandomCfg(); [Diff,CfgD_test] = HilbertObj.PropMove(Cfg_test);
 RatioTester = [Cfg_test.occ.'; CfgD_test.occ.'];
@@ -34,8 +35,8 @@ Params_read = NewNQSArray{a}.ParamList();
 dParams = Params - Params_read;
 if sum(abs(dParams))>1e-10
     disp('Test failed: ParamList');
-    disp(['Original parameters: ' num2str(Params).']);
-    disp(['Listed parameters: ' num2str(Params_read)]);
+    disp(['Original parameters: ' num2str(Params.')]);
+    disp(['Listed parameters: ' num2str(Params_read.')]);
     TestPass = false;
 end
 

@@ -10,7 +10,6 @@ function [Psi] = PsiGenerateNQSM(NQSObj,Basis)
 % - NQSM.Nh = number of "hidden" units.
 % - NQSM.Np = number of parameters in the ansatz = 3*Nv + Alpha + (2*Nv * Alpha).
 % - NQSM.Alpha = number of unique coupling sets or "hidden unit density".
-% - NQSM.VDim = dimensions of the visible units.
 % - NQSM.a = (3*Nv x 1) vector - visible site bias.
 % - NQSM.av = (3*Nsl x 1) vector - visible bias parameters.
 % - NQSM.b = (Nh x 1) vector - hidden site bias.
@@ -33,7 +32,7 @@ for b = 1:N_cfgs
     Psi(b) = exp(sum(NQSObj.a.*OVec)) * prod(cosh(Theta(:)));
 end
 if ~isinf(max(abs(Psi)))
-    Psi = Psi/max(abs(Psi)); % Pre-normalisation to avoid runaway arguments:
+    Psi = Psi/max(abs(Psi)); % Pre-normalisation to avoid runaway arguments.
 end
 ModPsi = sqrt(sum(abs(Psi).^2));
 Psi = Psi/ModPsi;

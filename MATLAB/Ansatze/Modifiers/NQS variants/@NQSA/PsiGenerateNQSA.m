@@ -33,7 +33,7 @@ for h = 1:NQSObj.Nh
     Psi = Psi .* cosh(Theta);
 end
 if ~isinf(max(abs(Psi)))
-    Psi = Psi/max(abs(Psi)); % Pre-normalisation to avoid runaway arguments:
+    Psi = Psi/max(abs(Psi)); % Pre-normalisation to avoid runaway arguments.
 end
 ModPsi = sqrt(sum(abs(Psi).^2));
 Psi = Psi/ModPsi;

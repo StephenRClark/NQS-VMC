@@ -42,7 +42,7 @@ P = real(P).*NQSObj.OptInds(:,1) + 1i*imag(P).*NQSObj.OptInds(:,2); % Zeroes out
 da = P(1:Nsl);
 dA = P((1:Nsl) + Nsl);
 db = P((1:Alpha) + 2*Nsl);
-dW = reshape(P((1:(Nv*Alpha)) + 2*Nsl + Alpha),Alpha,Nv);
+dW = reshape(P((1:(Nv*Alpha)) + 2*Nsl + Alpha),Nv,Alpha).';
 
 % Apply updates to the ansatz:
 NQSObj.av = NQSObj.av + da;

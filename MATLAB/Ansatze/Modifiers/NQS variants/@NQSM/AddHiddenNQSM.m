@@ -9,7 +9,6 @@ function [NQSObj] = AddHiddenNQSM(NQSObj,Params)
 % - NQSU.Nh = number of "hidden" units.
 % - NQSU.Np = number of parameters in the ansatz = Nmax*Nv + Nh + (Nmax*Nv * Nh).
 % - NQSU.Alpha = number of unique coupling sets or "hidden unit density".
-% - NQSU.VDim = dimensions of the visible units.
 % - NQSU.a = (Nmax*Nv x 1) vector - visible site bias.
 % - NQSU.av = (Nmax*Nsl x 1) vector - visible bias parameters.
 % - NQSU.b = (Nh x 1) vector - hidden site bias.
