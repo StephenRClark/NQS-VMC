@@ -70,24 +70,26 @@ for a = 1:Alpha
 end
 
 % Repackage the ati, bti and Wv to usual NQS form.
-NQSObj.a = NQSObj.ati * ones(Nv,1);
-NQSObj.A = NQSObj.Ati * ones(Nv,1);
-
+for n = 1:Nv
+    NQSObj.a(n) = NQSObj.av(SLInds(n));
+    NQSObj.A(n) = NQSObj.Av(SLInds(n));
+end
 % Constructing shift invariant W matrix.
 for a = 1:Alpha
-    NQSObj.b((1:Ntr)+(a-1)*Ntr) = NQSObj.bti(a);
+    NQSObj.b((1:Ntr)+(a-1)*Ntr) = NQSObj.bv(a);
     % For each layer labelled by a, generate the desired translates.
     for b = 1:numel(BondMap)
         for n = 1:Nv
             if BondMap{b}(1+mod(n-1,Ng)) ~= 0 % Check that bond is valid - W(b,n) left empty otherwise.
                 VInd = BondMap{b}(1+mod(n-1,Ng)) + Ng*(ceil(n/Ng)-1);
                 % Account for enlarged lattices where Nv = Ns x Ng.
-                NQSObj.W(b+(a-1)*Ntr,VInd) = NQSObj.Wv(a,n);
-                NQSObj.w(b+(a-1)*Ntr,VInd) = NQSObj.wv(a,n);
+                NQSObj.w(b+(a-1)*Ntr,VInd) = NQSObj.wm(a,n);
+                NQSObj.W(b+(a-1)*Ntr,VInd) = NQSObj.Wm(a,n);                
             end
         end
     end
 end
 
-NQSObj.OptInds = ones(NQSObj.Np,1);
+
+
 end

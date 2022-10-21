@@ -5,7 +5,7 @@ classdef NQSP < NQS
     % are included up to orders VOrder, HOrder.
     %   NQS is overarching class, which is itself a subclass of Modifier.
     %   NQSP draws translational symmetries from the provided Graph object.
-    
+
     % ---------------------------------
     % Format for NQSP Modifier:
     % - NQSP.Nv = number of "visible" units.
@@ -37,9 +37,9 @@ classdef NQSP < NQS
     % - (Alpha x HOrder) x 1 for d/db. Group by Alpha > Hidden order
     % > [al, ho], [al, ho+1] ... [al+1, ho]
     % - (Alpha x Nv) x (HOrder x VOrder) for d/dW. Group by Alpha > Position > Hidden order > Visible order
-    % > [al,v,ho,vo], [al,v,ho,vo+1] ... [al,v,ho+1,vo] ... [al,v+1,ho,vo] ... [al+1,v,ho,vo] 
+    % > [al,v,ho,vo], [al,v,ho,vo+1] ... [al,v,ho+1,vo] ... [al,v+1,ho,vo] ... [al+1,v,ho,vo]
     % ---------------------------------
-    
+
     properties (SetAccess = protected) % Default to one visible, one hidden plus state with no input.
         Np = 2; % Number of parameters.
         Nv = 1; % Number of visible neurons.
@@ -58,14 +58,14 @@ classdef NQSP < NQS
         Graph; % Details connectivity of lattice - used to include symmetries.
         Rescale = 1; % Rescale by default.
     end
-    
+
     properties (Hidden)
         VisVec = 0; % Rescaled visible occupancies n_i/n_max, Nv x 1 vector.
         Theta = 0; % Local effective angle, Nh x 1 vector.
         ParamCap = 5; % Parameter cap to mitigate effects of erroneous parameter changes.
         OptInds = zeros(1,2); % Individual parameter flags for variational purposes.
     end
-    
+
     methods
         % Constructor for general number hidden NQS:
         function obj = NQSP(Hilbert,Graph,Params,VFlag)
@@ -116,37 +116,37 @@ classdef NQSP < NQS
             end
             obj = RandomInitPsiNQSP(obj,Params);
         end
-        
+
         % PsiUpdate: Update Modifier variational parameters according to
         % changes dP.
         function obj = PsiUpdate(obj,dP)
             obj = PsiUpdateNQSP(obj,dP);
         end
-        
+
         % PsiCfgUpdate: Update Modifier configuration information inside
         % Update.
         function obj = PsiCfgUpdate(obj,Update)
             obj.Theta = Update.Theta; obj.VisVec = Update.VisVec;
         end
-        
+
         % PrepPsi: Initialise Modifier configuration information given a
         % starting Cfg.
         function obj = PrepPsi(obj,Cfg)
             obj = PrepPsiNQSP(obj,Cfg);
         end
-        
+
         % PsiGenerate: Generate full normalised NQS amplitudes for a given
         % set of basis states.
         function [Psi] = PsiGenerate(obj,Basis)
             Psi = PsiGenerateNQSP(obj,Basis);
         end
-        
+
         % AddHidden: Generate additional hidden units and associated
         % parameters.
         function [obj] = AddHidden(obj,Params)
             obj = AddHiddenNQSP(obj,Params);
         end
-        
+
         % PsiRatio: Ratio of amplitudes for two configurations separated by
         % Diff.
         function [Ratio,Update] = PsiRatio(obj,Diff)
@@ -181,7 +181,7 @@ classdef NQSP < NQS
             % Add new VisVec and Theta to Update.
             Update.Theta = ThetaP; Update.VisVec = VisVecP;
         end
-        
+
         % LogDeriv: Logarithmic derivative for the variational parameters
         % in Modifier.
         function [dLogp] = LogDeriv(obj,Cfg)
@@ -190,7 +190,7 @@ classdef NQSP < NQS
             Nsl = max(SLInds); % Number of sublattices for da.
             Cfg_vec = obj.FullCfg(Cfg)*((obj.VDim-1)^-obj.Rescale); % Build the spin configuration vector.
             obj.VisVec = Cfg_vec; % Ensure VisVec is properly assigned.
-            dLogp = zeros(obj.Np,1); % Initialise full vector of derivatives.            
+            dLogp = zeros(obj.Np,1); % Initialise full vector of derivatives.
             VisPow = Cfg_vec(:) .^ (1:obj.VOrder); % Nv x VOrder
             HidPow = ((0:(obj.HDim-1)).'*((obj.HDim-1)^(-obj.Rescale))) .^ (1:obj.HOrder); % HDim x HOrder
             HidArray = reshape(HidPow.',1,obj.HOrder,obj.HDim);
@@ -227,20 +227,19 @@ classdef NQSP < NQS
             end
             % Do some forward error prevention for NaN or Inf elements by zeroing them:
             dLogp = real(dLogp).*obj.OptInds(:,1) + 1i*imag(dLogp).*obj.OptInds(:,2);
-            dLogp(isnan(dLogp)) = 0;
-            dLogp(isinf(dLogp)) = 0;
+            dLogp(isnan(dLogp)) = 0; dLogp(isinf(dLogp)) = 0;
         end
-        
+
         % ParamList: outputs a Np x 1 vector of parameters.
         function [Params] = ParamList(obj)
             Params = ParamListNQSP(obj);
         end
-        
+
         % ParamLoad: replaces parameters with the provided ones in vector P.
         function [obj] = ParamLoad(obj,P)
             obj = ParamLoadNQSP(obj,P);
         end
-        
+
         % PropertyList: Output a struct with the relevant properties as
         % separate fields. Used for interfacing with C++ code.
         function [Properties] = PropertyList(obj)
@@ -252,5 +251,5 @@ classdef NQSP < NQS
             Properties.Params = obj.ParamList; Properties.ParamCap = obj.ParamCap;
         end
     end
-    
+
 end

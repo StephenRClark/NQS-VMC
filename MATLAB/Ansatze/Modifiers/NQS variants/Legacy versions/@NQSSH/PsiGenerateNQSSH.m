@@ -27,7 +27,8 @@ Psi = exp(sum(A.*(Basis.^2) + (a.*Basis),2)); % Visible bias contributions handl
 for h = 1:NQSObj.Nh
     Theta = sum(Basis .* NQSObj.W(h,:),2) + NQSObj.b(h);
     B = NQSObj.B(h).*ones(size(Basis,1),1);
-    Psi = Psi .* SHTrace(Theta,B,NQSObj.HDim);
+    SHT = SHTrace(Theta,B,NQSObj.HDim);
+    Psi = Psi .* SHT;
 end
 if isinf(max(abs(Psi))) == 0
     Psi = Psi/max(abs(Psi));

@@ -22,6 +22,9 @@ for p = 1:numel(Psi)
     JfMat = Js .* (Basis(p,:).' * Basis(p,:));
     Psi(p) = exp(-0.5*sum(JfMat(:)));
 end
+if ~isinf(max(abs(Psi)))
+    Psi = Psi/max(abs(Psi)); 
+end
 ModPsi = sqrt(sum(abs(Psi).^2));
 Psi = Psi/ModPsi;
 end

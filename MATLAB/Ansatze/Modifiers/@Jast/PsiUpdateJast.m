@@ -18,7 +18,7 @@ function JastObj = PsiUpdateJast(JastObj,dP)
 % Format for dLogp vector is a (Np x 1) vector of relevant two-site terms.
 % ---------------------------------
 
-dP = dP.*JastObj.OptInds; % Zeroes out any undesired parameter changes.
+dP = real(dP).*JastObj.OptInds(:,1) + 1i*imag(dP).*JastObj.OptInds(:,2); % Zeroes out any undesired parameter changes.
 
 JastObj.JsVar = JastObj.JsVar + dP;
 
@@ -36,3 +36,4 @@ if JastObj.NormFlag == 1
 end
 % Repopulate Jast.Js with the new JsVar values.
 JastObj.Js = JastObj.JsVar(JastObj.JsV);
+end

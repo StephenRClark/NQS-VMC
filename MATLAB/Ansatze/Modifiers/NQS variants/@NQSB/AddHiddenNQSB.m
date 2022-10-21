@@ -39,7 +39,7 @@ Nsl = max(SLInds); % Number of sublattices for da.
 
 bv = NQSObj.bv; Bv = NQSObj.Bv; Wm = NQSObj.Wm;
 
-OptInds_a = OptInds(1:(2*Nsl),:);
+OptInds_aA = OptInds(1:(2*Nsl),:);
 OptInds_b0 = OptInds(2*Nsl+(1:A0),:);
 OptInds_B0 = OptInds(2*Nsl+A0+(1:A0),:);
 OptInds_W0 = OptInds(2*Nsl+2*A0+(1:(A0*Nv)),:);
@@ -79,7 +79,7 @@ end
 Alpha = AF; NhF = Alpha*Ntr;
 
 % Sort out optimisation indices
-OptInds = [OptInds_a; OptInds_bF; OptInds_BF; OptInds_WF];
+OptInds = [OptInds_aA; OptInds_bF; OptInds_BF; OptInds_WF];
 
 % Reassign all fields affected by Nh change.
 NQSObj.Np = 2*Nsl + 2*AF + AF*Nv; NQSObj.Nh = NhF; NQSObj.Theta = zeros(NhF,1);

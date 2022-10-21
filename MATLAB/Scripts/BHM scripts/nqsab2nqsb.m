@@ -2,13 +2,13 @@ UVec = [1 16 23 32]; N = 100; NStr = [' N ' num2str(N)];
 
 Nmax = 4; HilbertObj = Bose(N,N,Nmax);
 
-ModParams.Alpha = 2; ModParams.HDim = 5;
+ModParams.HDim = 5;
 ModParams.a = 0; ModParams.b = 0; ModParams.W = 0;
 ModParams.nmag = 0; ModParams.nphs = 0;
 
-AnsStrOld = {'BECR-NQS-AB-HDim5 Alpha 2'};
-
-AnsStrNew = {'BECR-NQSB-HDim5 Alpha 2'};
+Alpha = 2; ModParams.Alpha = Alpha; 
+AnsStrOld = {['BECR-NQS-AB-HDim5 Alpha ' num2str(Alpha)]};
+AnsStrNew = {['BECR-NQSB-HDim5 Alpha ' num2str(Alpha)]};
 
 % Testing setup
 TestPass = true; Ncfgs = 100;
@@ -29,11 +29,16 @@ for a = 1:numel(AnsStrOld)
         Params = ParamsOld; ParamCap = 10;
         % Perform conversion for spin-hidden versions.
         if isa(NQSObjOld,'NQSSHTI')
+            if Alpha == 2
             % Require rescaling of hidden bias to accommodate linear shift
             b_old = ParamsOld([3 4]); B_old = ParamsOld([5 6]); 
             b_new = b_old - 4*B_old; Params([3 4]) = b_new;
             while max(abs(b_new)) > ParamCap
                 ParamCap = ParamCap + 1;
+            end
+            elseif Alpha == 1
+                b_old = ParamsOld(3); B_old = ParamsOld(4);
+                b_new = b_old - 4*B_old; Params(3) = b_new;
             end
         end
         OptIndsOld = NQSObjOld.OptInds; OptIndsNew = [OptIndsOld, (OptIndsOld*0)];
@@ -47,7 +52,9 @@ for a = 1:numel(AnsStrOld)
         if isa(NQSObjOld,'NQSSHTI')
             % Account for b shift
             ThetaNew(1:N) = ThetaNew(1:N) + 4*B_old(1);
-            ThetaNew((1:N)+N) = ThetaNew((1:N)+N) + 4*B_old(2);
+            if Alpha == 2
+                ThetaNew((1:N)+N) = ThetaNew((1:N)+N) + 4*B_old(2);
+            end
         end        
         dTheta = (ThetaNew - ThetaOld)./ThetaOld;
         if sum(abs(dTheta))>1e-10
@@ -72,6 +79,7 @@ for a = 1:numel(AnsStrOld)
         end
         
         if TestPass
+            disp(['Success for U = ' num2str(U)]);
             AnsatzObj = AnsatzObj.ModReplace(NQSObjNew,1);
             save(['BHM 2D U ' num2str(U) NStr ' ' AnsStrNew{a} ' Logs.mat'],'AnsatzObj',...
                 'BiBj','DbHl','DiDj','EneGS','EnIter','EvalTime','HiHj','NiNj',...

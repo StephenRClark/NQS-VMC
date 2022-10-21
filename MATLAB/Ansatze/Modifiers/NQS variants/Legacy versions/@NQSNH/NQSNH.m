@@ -1,4 +1,4 @@
-classdef NQSNH < NQS
+classdef NQSNH < Modifier
     % NQSNH - a NQS Modifier variant that uses number-like hidden units
     % with dimension HDim instead of spin-like hidden units.
     %   NQS is overarching class, which is itself a subclass of Modifier.
@@ -33,16 +33,50 @@ classdef NQSNH < NQS
         A = 0; % Visible site square bias.
         B = 0; % Hidden site square bias.
         HDim = 2; % Hidden unit dimensionality, set to match Hilbert.
+        a = 0;
+        b = 0;
+        W = 0;
+        Nv = 0;
+        Nh = 0;
+        Np = 0;
+        Graph
     end
     
     properties (Hidden)
         NsqVec = 0; % Squared visible occupancies, Nv x 1 vector.
+        ParamCap = 5;
+        Theta = 0;
+        OptInds = 0;
+    end
+
+    properties (Hidden, SetAccess = protected)
+        FullCfg = @FullSpinCfg; % Default case assumes spin Hilbert.
     end
     
     methods
         % Constructor for general number hidden NQS:
         function obj = NQSNH(Hilbert,Graph,Params,VFlag)
-            obj@NQS(Hilbert,Graph,Params,VFlag);
+            if nargin < 4 % Assume variational if no VFlag specified.
+                obj.VFlag = 1;
+            elseif nargin == 4
+                obj.VFlag = VFlag;
+            end
+            if strcmp(Hilbert.Type,'Ferm')
+                error('Base NQS compatibility with fermionic systems has been retired. Use NQSF modifier instead.');
+            else
+                obj.Nv = Hilbert.N;
+                if strcmp(Hilbert.Type,'Bose')
+                    obj.FullCfg = @FullBoseCfg;
+                elseif strcmp(Hilbert.Type,'Spin')
+                    obj.FullCfg = @FullSpinCfg;
+                end
+            end
+            if isfield(Params,'Alpha')
+                obj.Nh = Params.Alpha * Hilbert.N;
+            else
+                obj.Nh = Params.Nh;
+            end
+            obj.Graph = Graph;
             obj.HDim = Params.HDim; % Set NQS hidden dimension in Params.
             if (obj.HDim < 2) || (floor(obj.HDim) ~= obj.HDim)
                 error('Hidden dimension must be an integer no less than 2.');

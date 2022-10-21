@@ -28,6 +28,9 @@ for p = 1:numel(Psi)
     end
     Psi(p) = exp(GMB*sum(Db + Hl));
 end
+if ~isinf(max(abs(Psi)))
+    Psi = Psi/max(abs(Psi));
+end
 ModPsi = sqrt(sum(abs(Psi).^2));
 Psi = Psi/ModPsi;
 end

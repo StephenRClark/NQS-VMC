@@ -2,14 +2,15 @@ UVec = [1 16 23 32]; N = 100; NStr = [' N ' num2str(N)];
 
 Nmax = 4; HilbertObj = Bose(N,N,Nmax);
 
-ModParams.Alpha = 1; ModParams.VDim = 5;
+ModParams.HDim = 5;
 ModParams.a = 0; ModParams.b = 0; ModParams.W = 0;
 ModParams.nmag = 0; ModParams.nphs = 0;
 
-AnsStrOld = {'BECR-NQS-U-VDim5 Alpha 1'};
-
-AnsStrNew = {'BECR-NQSU-VDim5 Alpha 1'};
-
+Alpha = 1; ModParams.Alpha = Alpha; 
+AnsStrOld = {'BECR-JHD-NQS-R'};
+AnsStrNew = {'BECR-JMBC-NQSA'};
+% Old NQSSH uses h = [-1/2, 1/2] versus [-1, 1] - halve parameters to
+% transition
 % Testing setup
 TestPass = true; Ncfgs = 100;
 TestCfg = HilbertObj.RandomCfg(); TestCfgP = TestCfg; [Diff,TestCfgD] = HilbertObj.PropMove(TestCfg);
@@ -19,36 +20,32 @@ for n = 2:Ncfgs
     TestCfgMat(n,:) = TestCfgP.occ.';
 end
 
-for a = 1%:numel(AnsStrOld)
+for a = 1:numel(AnsStrOld)
     for u = 1:numel(UVec)
+        TestPass = true;
         U = UVec(u);
         load(['BHM 2D U ' num2str(U) NStr ' ' AnsStrOld{a} ' Logs.mat']);
-        NQSObjOld = AnsatzObj.Modifier{1}; ParamsOld = NQSObjOld.ParamList;
-        % Separate out parameters corresponding to v = 0:
-        a_old = ParamsOld(1:(Nmax+1)); b_old = ParamsOld(Nmax+2);
-        w_old = reshape(ParamsOld((1:((Nmax+1)*N))+Nmax+2),Nmax+1,N);
-        a_0 = a_old(1); w_0 = w_old(1,:);
-        a_new = ParamsOld((1:Nmax)+1) - a_0;
-        b_new = b_old + sum(w_0);
-        w_new = reshape((w_old(2:end,:)-w_0),Nmax*N,1);
+        NQSObjOld = AnsatzObj.Modifier{3}; ParamsOld = NQSObjOld.ParamList;
         % Setup new Modifier.
-        Params = [a_new; b_new; w_new];
-        OptIndsOld = NQSObjOld.OptInds; OptIndsNew = [OptIndsOld, (OptIndsOld*0)];
-        NQSObjNew = NQSU(HilbertObj, NQSObjOld.Graph, ModParams, 1); NQSObjNew.ParamCap = 10;
+        ParamInds = [(1:(2+Alpha)).'; ((3+2*Alpha):NQSObjOld.Np).'];
+        Params = [ParamsOld([1;2]); 0.5*ParamsOld((1:Alpha)+2); 0.5*ParamsOld((2*(1+Alpha)+1):end)];
+        ParamCap = 10;
+        OptIndsOld = NQSObjOld.OptInds; OptIndsNew = [OptIndsOld(ParamInds), (OptIndsOld(ParamInds)*0)];
+        NQSObjNew = NQSA(HilbertObj, NQSObjOld.Graph, ModParams, 1); NQSObjNew.ParamCap = ParamCap;
         NQSObjNew.OptInds = OptIndsNew; NQSObjNew = NQSObjNew.ParamLoad(Params);
         
         % Testing basic quantities to ensure equivalence
         NQSObjOld = NQSObjOld.PrepPsi(TestCfg); NQSObjNew = NQSObjNew.PrepPsi(TestCfg);
         % Theta check:
         ThetaOld = NQSObjOld.Theta; ThetaNew = NQSObjNew.Theta;
-        dTheta = ThetaNew - ThetaOld;
+        dTheta = (ThetaNew - 0.5*ThetaOld)./(0.5*ThetaOld);
         if sum(abs(dTheta))>1e-10
             disp('Theta check failed.'); TestPass = false;
             disp(['Summed Theta difference: ' num2str(sum(abs(dTheta)))]);
         end
         % Ratio check:
         RatioOld = NQSObjOld.PsiRatio(Diff); RatioNew = NQSObjNew.PsiRatio(Diff);
-        dRatio = abs((RatioNew - RatioOld)/RatioOld);
+        dRatio = (RatioNew - RatioOld)/RatioOld;
         if abs(dRatio)>1e-10
             disp('Ratio check failed.'); TestPass = false;
             disp(['Ratio difference: ' num2str(RatioNew-RatioOld)]);
@@ -65,11 +62,11 @@ for a = 1%:numel(AnsStrOld)
         
         if TestPass
             disp(['Success for U = ' num2str(U)]);
-            AnsatzObj = AnsatzObj.ModReplace(NQSObjNew,1);
+            AnsatzObj = AnsatzObj.ModReplace(NQSObjNew,3);
             save(['BHM 2D U ' num2str(U) NStr ' ' AnsStrNew{a} ' Logs.mat'],'AnsatzObj',...
                 'BiBj','DbHl','DiDj','EneGS','EnIter','EvalTime','HiHj','NiNj',...
                 'OcFr','Params','RunDate','RunTime','VarE','VarN');
-            else
+        else
             disp(['Test failure at U = ' num2str(U)]);
         end
     end

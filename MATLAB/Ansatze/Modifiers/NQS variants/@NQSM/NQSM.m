@@ -4,7 +4,7 @@ classdef NQSM < Modifier
     % and hidden units. M is a parameter-reduced version of U.
     %   Modifier is the overarching class. NQSM pulls translational
     %   symmetries from the provided Graph object.
-    
+
     % ---------------------------------
     % Format for NQSM Modifier object:
     % - NQSM.Nv = number of "visible" units.
@@ -33,11 +33,11 @@ classdef NQSM < Modifier
     % - (Alpha*Nv x 1) for d/dX.
     % Arranged [a, v], [a, v+1] ... [a+1, v] ...
     % ---------------------------------
-    
+
     properties % Default to one visible, one hidden plus state with no input.
         VFlag = 1; % Flag for whether to vary the parameters specified in this modifier.
     end
-    
+
     properties (SetAccess = protected)
         Np = 1; % Number of parameters.
         Nv = 1; % Number of visible neurons.
@@ -54,7 +54,7 @@ classdef NQSM < Modifier
         Xm = 0; % Doublon coupling parameters, Alpha x Nv matrix.
         Graph % Details connectivity of lattice - used to include symmetries.
     end
-    
+
     properties (Hidden)
         Theta = 0; % Local effective angle, Nh x 1 vector.
         VisVec = 0; % Visible occupancies, Nv x 1 vector.
@@ -62,11 +62,11 @@ classdef NQSM < Modifier
         ParamCap = 5; % Parameter cap to mitigate effects of erroneous parameter changes.
         OptInds = zeros(1,1); % Individual parameter flags for variational purposes.
     end
-    
+
     properties (Hidden, SetAccess = protected)
         FullCfg = @FullBoseCfg; % Default case assumes bosonic Hilbert.
     end
-    
+
     methods
         % Constructor for NQS with randomly initialised parameters:
         function obj = NQSM(Hilbert,Graph,Params,VFlag)
@@ -78,7 +78,7 @@ classdef NQSM < Modifier
             end
             if nargin < 3 % Assume instance with zero starting parameters.
                 Params.nmag = 0; Params.nphs = 0;
-                Params.Alpha = 1; 
+                Params.Alpha = 1;
                 Params.a = 0; Params.b = 0; Params.W = 0; Params.X = 0;
             end
             if strcmp(Hilbert.Type,'Bose')==0
@@ -96,37 +96,37 @@ classdef NQSM < Modifier
             obj.Graph = Graph;
             obj = RandomInitPsiNQSM(obj,Params);
         end
-        
+
         % PsiUpdate: Update Modifier variational parameters according to
         % changes dP.
         function obj = PsiUpdate(obj,dP)
             obj = PsiUpdateNQSM(obj,dP);
         end
-        
+
         % PsiCfgUpdate: Update Modifier configuration information inside
         % Update.
         function obj = PsiCfgUpdate(obj,Update)
-            obj.Theta = Update.Theta; obj.OMat = Update.UVec;
+            obj.Theta = Update.Theta; obj.OMat = Update.OMat; obj.VisVec = Update.VisVec;
         end
-        
+
         % PrepPsi: Initialise Modifier configuration information given a
         % starting Cfg.
         function obj = PrepPsi(obj,Cfg)
             obj = PrepPsiNQSM(obj,Cfg);
         end
-        
+
         % PsiGenerate: Generate full normalised NQS amplitudes for a given
         % set of basis states.
         function [Psi] = PsiGenerate(obj,Basis)
             Psi = PsiGenerateNQSM(obj,Basis);
         end
-        
+
         % AddHidden: Generate additional hidden units and associated
         % parameters.
         function [obj] = AddHidden(obj,Params)
             obj = AddHiddenNQSM(obj,Params);
         end
-        
+
         % PsiRatio: Ratio of amplitudes for two configurations separated by
         % Diff.
         function [Ratio,Update] = PsiRatio(obj,Diff)
@@ -142,14 +142,14 @@ classdef NQSM < Modifier
                         OMatP(Diff.pos(d),:) = [0 1 0];
                     otherwise
                         OMatP(Diff.pos(d),:) = [0 0 1];
-                end                
+                end
             end
             dHDM = reshape((OMatP-obj.OMat),3*obj.Nv,1); dHD = dHDM(1:(2*obj.Nv));
             ThetaP = ThetaP + [obj.W, obj.X] * dHD;
             Ratio = exp(sum(obj.a .* dHDM)) * prod(cosh(ThetaP)./cosh(obj.Theta));
             Update.OMat = OMatP; Update.VisVec = VisVecP; Update.Theta = ThetaP;
         end
-        
+
         % LogDeriv: Logarithmic derivative for the variational parameters
         % in Modifier.
         function [dLogp] = LogDeriv(obj,Cfg)
@@ -158,7 +158,7 @@ classdef NQSM < Modifier
             Ntr = numel(BondMap); % Number of translates - Nh = Ntr*Alpha.
             Nsl = max(SLInds); % Number of sublattices for da.
             Cfg_vec = obj.FullCfg(Cfg); % Build the spin configuration vector.
-            OMatP = [(Cfg_vec==0), (Cfg_vec==2), (Cfg_vec>2)]; 
+            OMatP = [(Cfg_vec==0), (Cfg_vec==2), (Cfg_vec>2)];
             dLogp = zeros(obj.Np,1); % Initialise full vector of derivatives.
             for s = 1:Nsl
                 for v = 1:3
@@ -201,17 +201,17 @@ classdef NQSM < Modifier
             dLogp = real(dLogp).*obj.OptInds(:,1) + 1i*imag(dLogp).*obj.OptInds(:,2);
             dLogp(isnan(dLogp)) = 0; dLogp(isinf(dLogp)) = 0;
         end
-        
+
         % ParamList: outputs an Np x 1 vector of parameter values.
         function [Params] = ParamList(obj)
             Params = ParamListNQSM(obj);
         end
-        
+
         % ParamLoad: replaces parameters with the provided ones in vector P.
         function [obj] = ParamLoad(obj,P)
             obj = ParamLoadNQSM(obj,P);
         end
-        
+
         % PropertyList: Output a struct with the relevant properties as
         % separate fields. Used for interfacing with C++ code.
         function [Properties] = PropertyList(obj)
@@ -221,5 +221,5 @@ classdef NQSM < Modifier
             Properties.Params = obj.ParamList; Properties.ParamCap = obj.ParamCap;
         end
     end
-    
+
 end

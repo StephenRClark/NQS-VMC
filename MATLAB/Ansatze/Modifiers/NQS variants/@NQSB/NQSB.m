@@ -1,10 +1,10 @@
 classdef NQSB < Modifier
     % NQSB - a NQS Modifier variant that introduces square visible biases
-    % and hidden biases. This variant is tuned for systems with non-binary 
+    % and hidden biases. This variant is tuned for systems with non-binary
     % visible dimension and hidden dimension.
     %   NQS is overarching class, which is itself a subclass of Modifier.
     %   NQSB draws translational symmetries from the provided Graph object.
-    
+
     % ---------------------------------
     % Format for NQSB Modifier:
     % - NQSB.Nv = number of "visible" units.
@@ -36,11 +36,11 @@ classdef NQSB < Modifier
     % - (Alpha x 1) for d/dB
     % - (Alpha*Nv x 1) for d/dW.
     % ---------------------------------
-    
+
     properties % Default to one visible, one hidden plus state with no input.
         VFlag = 1; % Flag for whether to vary the parameters specified in this modifier.
     end
-    
+
     properties (SetAccess = protected) % Default to one visible, one hidden plus state with no input.
         Np = 2; % Number of parameters.
         Nv = 1; % Number of visible neurons.
@@ -59,18 +59,18 @@ classdef NQSB < Modifier
         Wm = 0; % Coupling parameters, Alpha x Nv matrix.
         Graph; % Details connectivity of lattice - used to include symmetries.
     end
-    
+
     properties (Hidden)
         NsqVec = 0; % Squared visible occupancies, Nv x 1 vector.
         Theta = 0; % Local effective angle, Nh x 1 vector.
         ParamCap = 5; % Parameter cap to mitigate effects of erroneous parameter changes.
         OptInds = zeros(1,2); % Individual parameter flags for variational purposes.
     end
-    
+
     properties (Hidden, SetAccess = protected)
         FullCfg = @FullBoseCfg; % Default case assumes bosonic Hilbert.
     end
-    
+
     methods
         % Constructor for general number hidden NQS:
         function obj = NQSB(Hilbert,Graph,Params,VFlag)
@@ -107,37 +107,37 @@ classdef NQSB < Modifier
             obj.Graph = Graph;
             obj = RandomInitPsiNQSB(obj,Params);
         end
-        
+
         % PsiUpdate: Update Modifier variational parameters according to
         % changes dP.
         function obj = PsiUpdate(obj,dP)
             obj = PsiUpdateNQSB(obj,dP);
         end
-        
+
         % PsiCfgUpdate: Update Modifier configuration information inside
         % Update.
         function obj = PsiCfgUpdate(obj,Update)
             obj.Theta = Update.Theta; obj.NsqVec = Update.NsqVec;
         end
-        
+
         % PrepPsi: Initialise Modifier configuration information given a
         % starting Cfg.
         function obj = PrepPsi(obj,Cfg)
             obj = PrepPsiNQSB(obj,Cfg);
         end
-        
+
         % PsiGenerate: Generate full normalised NQS amplitudes for a given
         % set of basis states.
         function [Psi] = PsiGenerate(obj,Basis)
             Psi = PsiGenerateNQSB(obj,Basis);
         end
-        
+
         % AddHidden: Generate additional hidden units and associated
         % parameters.
         function [obj] = AddHidden(obj,Params)
             obj = AddHiddenNQSB(obj,Params);
         end
-        
+
         % PsiRatio: Ratio of amplitudes for two configurations separated by
         % Diff.
         function [Ratio,Update] = PsiRatio(obj,Diff)
@@ -157,7 +157,7 @@ classdef NQSB < Modifier
             % Collect new configuration information into Update.
             Update.Theta = ThetaP; Update.NsqVec = NsqP;
         end
-        
+
         % LogDeriv: Logarithmic derivative for the variational parameters
         % in Modifier.
         function [dLogp] = LogDeriv(obj,Cfg)
@@ -200,17 +200,17 @@ classdef NQSB < Modifier
             dLogp = real(dLogp).*obj.OptInds(:,1) + 1i*imag(dLogp).*obj.OptInds(:,2);
             dLogp(isnan(dLogp)) = 0; dLogp(isinf(dLogp)) = 0;
         end
-        
+
         % ParamList: outputs a Np x 1 vector of parameters.
         function [Params] = ParamList(obj)
             Params = ParamListNQSB(obj);
         end
-        
+
         % ParamLoad: replaces parameters with the provided ones in vector P.
         function [obj] = ParamLoad(obj,P)
             obj = ParamLoadNQSB(obj,P);
         end
-        
+
         % PropertyList: Output a struct with the relevant properties as
         % separate fields. Used for interfacing with C++ code.
         function [Properties] = PropertyList(obj)
@@ -220,5 +220,5 @@ classdef NQSB < Modifier
             Properties.Params = obj.ParamList; Properties.ParamCap = obj.ParamCap;
         end
     end
-    
+
 end

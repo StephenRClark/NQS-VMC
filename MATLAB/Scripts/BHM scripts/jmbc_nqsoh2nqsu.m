@@ -6,9 +6,9 @@ ModParams.Alpha = 1; ModParams.VDim = 5;
 ModParams.a = 0; ModParams.b = 0; ModParams.W = 0;
 ModParams.nmag = 0; ModParams.nphs = 0;
 
-AnsStrOld = {'BECR-NQS-U-VDim5 Alpha 1'};
+AnsStrOld = {'BECR-JHD-NQS-U-VDim5'};
 
-AnsStrNew = {'BECR-NQSU-VDim5 Alpha 1'};
+AnsStrNew = {'BECR-JMBC-NQSU-VDim5'};
 
 % Testing setup
 TestPass = true; Ncfgs = 100;
@@ -23,7 +23,7 @@ for a = 1%:numel(AnsStrOld)
     for u = 1:numel(UVec)
         U = UVec(u);
         load(['BHM 2D U ' num2str(U) NStr ' ' AnsStrOld{a} ' Logs.mat']);
-        NQSObjOld = AnsatzObj.Modifier{1}; ParamsOld = NQSObjOld.ParamList;
+        NQSObjOld = AnsatzObj.Modifier{3}; ParamsOld = NQSObjOld.ParamList;
         % Separate out parameters corresponding to v = 0:
         a_old = ParamsOld(1:(Nmax+1)); b_old = ParamsOld(Nmax+2);
         w_old = reshape(ParamsOld((1:((Nmax+1)*N))+Nmax+2),Nmax+1,N);
@@ -65,7 +65,7 @@ for a = 1%:numel(AnsStrOld)
         
         if TestPass
             disp(['Success for U = ' num2str(U)]);
-            AnsatzObj = AnsatzObj.ModReplace(NQSObjNew,1);
+            AnsatzObj = AnsatzObj.ModReplace(NQSObjNew,3);
             save(['BHM 2D U ' num2str(U) NStr ' ' AnsStrNew{a} ' Logs.mat'],'AnsatzObj',...
                 'BiBj','DbHl','DiDj','EneGS','EnIter','EvalTime','HiHj','NiNj',...
                 'OcFr','Params','RunDate','RunTime','VarE','VarN');

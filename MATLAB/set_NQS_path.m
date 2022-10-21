@@ -1,5 +1,5 @@
 % Path preample for NQS:
 
-NQS_root = 'D:/Michael/Documents/GitHub/NQS-VMC/MATLAB';
+NQS_root = pwd;
 
 addpath(genpath(NQS_root));

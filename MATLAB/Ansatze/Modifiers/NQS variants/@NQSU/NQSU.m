@@ -4,7 +4,7 @@ classdef NQSU < Modifier
     % and hidden units. U is a parameter-reduced version of OH.
     %   Modifier is the overarching class. NQSU pulls translational
     %   symmetries from the provided Graph object.
-    
+
     % ---------------------------------
     % Format for NQSU Modifier object:
     % - NQSU.Nv = number of "visible" units.
@@ -31,11 +31,11 @@ classdef NQSU < Modifier
     % - (Alpha*Nv*Nmax x 1) for d/dW.
     % Arranged [a, v, vd], [a, v, vd+1], ... ,[a, v+1, vd], ...
     % ---------------------------------
-    
+
     properties % Default to one visible, one hidden plus state with no input.
         VFlag = 1; % Flag for whether to vary the parameters specified in this modifier.
     end
-    
+
     properties (SetAccess = protected)
         Np = 1; % Number of parameters.
         Nv = 1; % Number of visible neurons.
@@ -50,7 +50,7 @@ classdef NQSU < Modifier
         Wm = 0; % Coupling parameters, Alpha x Nv matrix.
         Graph % Details connectivity of lattice - used to include symmetries.
     end
-    
+
     properties (Hidden)
         Theta = 0; % Local effective angle, Nh x 1 vector.
         UVec = 0; % Copy of the configuration converted to a unary vector.
@@ -58,11 +58,11 @@ classdef NQSU < Modifier
         ParamCap = 5; % Parameter cap to mitigate effects of erroneous parameter changes.
         OptInds = zeros(1,1); % Individual parameter flags for variational purposes.
     end
-    
+
     properties (Hidden, SetAccess = protected)
         FullCfg = @FullSpinCfg; % Default case assumes spin Hilbert.
     end
-    
+
     methods
         % Constructor for NQS with randomly initialised parameters:
         function obj = NQSU(Hilbert,Graph,Params,VFlag)
@@ -97,37 +97,37 @@ classdef NQSU < Modifier
             obj.Graph = Graph;
             obj = RandomInitPsiNQSU(obj,Params);
         end
-        
+
         % PsiUpdate: Update Modifier variational parameters according to
         % changes dP.
         function obj = PsiUpdate(obj,dP)
             obj = PsiUpdateNQSU(obj,dP);
         end
-        
+
         % PsiCfgUpdate: Update Modifier configuration information inside
         % Update.
         function obj = PsiCfgUpdate(obj,Update)
             obj.Theta = Update.Theta; obj.UVec = Update.UVec;
         end
-        
+
         % PrepPsi: Initialise Modifier configuration information given a
         % starting Cfg.
         function obj = PrepPsi(obj,Cfg)
             obj = PrepPsiNQSU(obj,Cfg);
         end
-        
+
         % PsiGenerate: Generate full normalised NQS amplitudes for a given
         % set of basis states.
         function [Psi] = PsiGenerate(obj,Basis)
             Psi = PsiGenerateNQSU(obj,Basis);
         end
-        
+
         % AddHidden: Generate additional hidden units and associated
         % parameters.
         function [obj] = AddHidden(obj,Params)
             obj = AddHiddenNQSU(obj,Params);
         end
-        
+
         % PsiRatio: Ratio of amplitudes for two configurations separated by
         % Diff.
         function [Ratio,Update] = PsiRatio(obj,Diff)
@@ -147,7 +147,7 @@ classdef NQSU < Modifier
             Ratio = exp(sum(obj.a .* dU)) * prod(cosh(ThetaP)./cosh(obj.Theta));
             Update.UVec = UVecP; Update.Theta = ThetaP;
         end
-        
+
         % LogDeriv: Logarithmic derivative for the variational parameters
         % in Modifier.
         function [dLogp] = LogDeriv(NQSObj,Cfg)
@@ -168,7 +168,7 @@ classdef NQSU < Modifier
                         dLogp(PInd) = sum(UMat(PInd,GraphObj.SLInds==s));
                     end
                 end
-            end            
+            end
             dTheta = tanh(NQSObj.Theta);
             for al = 1:NQSObj.Alpha
                 bInd = Nmax*Nsl + al;
@@ -191,17 +191,17 @@ classdef NQSU < Modifier
             dLogp = real(dLogp).*NQSObj.OptInds(:,1) + 1i*imag(dLogp).*NQSObj.OptInds(:,2);
             dLogp(isnan(dLogp)) = 0; dLogp(isinf(dLogp)) = 0;
         end
-        
+
         % ParamList: outputs an Np x 1 vector of parameter values.
         function [Params] = ParamList(obj)
             Params = ParamListNQSU(obj);
         end
-        
+
         % ParamLoad: replaces parameters with the provided ones in vector P.
         function [obj] = ParamLoad(obj,P)
             obj = ParamLoadNQSU(obj,P);
         end
-        
+
         % PropertyList: Output a struct with the relevant properties as
         % separate fields. Used for interfacing with C++ code.
         function [Properties] = PropertyList(obj)
@@ -212,5 +212,5 @@ classdef NQSU < Modifier
             Properties.Params = obj.ParamList; Properties.ParamCap = obj.ParamCap;
         end
     end
-    
+
 end

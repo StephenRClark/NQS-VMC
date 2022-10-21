@@ -7,29 +7,36 @@ function [Psi] = PsiGenerateNQSS1(NQSObj,Basis)
 % number of sites is small.
 % ---------------------------------
 % Format for NQS Modifier object modified for spin-1:
-% - NQS.Nv = number of "visible" spins.
-% - NQS.Nh = number of "hidden" spins.
-% - NQS.Np = number of parameters in the ansatz = 2*Nv*Nh + 2*Nv + Nh.
-% - NQS.a = (Nv x 1) vector - visible site bias.
-% - NQS.A = (Nv x 1) vector - visible site square bias.
-% - NQS.b = (Nh x 1) vector - hidden site bias.
-% - NQS.w = (Nh x Nv) matrix - hidden-visible linear coupling terms.
-% - NQS.W = (Nh x Nv) matrix - hidden-visible square coupling terms.
-% - NQS.Theta = (Nh x 1) vector - effective angles.
-% - NQS.NsqVec = (Nv x 1) vector - squared visible occupancies.
+% - NQSS1.Nv = number of "visible" spins.
+% - NQSS1.Nh = number of "hidden" spins.
+% - NQSS1.Alpha = number of unique coupling sets or "hidden unit density"
+% - NQSS1.Np = number of parameters in the ansatz = 2*Nv*Nh + 2*Nv + Nh.
+% - NQSS1.a = (Nv x 1) vector - visible site bias.
+% - NQSS1.av = (Nsl x 1) vector - visible bias parameters.
+% - NQSS1.A = (Nv x 1) vector - visible site square bias.
+% - NQSS1.Av = (Nsl x 1) vector - visible square bias parameters.
+% - NQSS1.b = (Nh x 1) vector - hidden site bias.
+% - NQSS1.bv = (Alpha x 1) vector - hidden bias parameters.
+% - NQSS1.w = (Nh x Nv) matrix - hidden-visible linear coupling terms.
+% - NQSS1.wm = (Alpha x Nv) matrix - linear coupling parameters.
+% - NQSS1.W = (Nh x Nv) matrix - hidden-visible square coupling terms.
+% - NQSS1.Wm = (Alpha x Nv) matrix - square coupling parameters.
+% - NQSS1.Theta = (Nh x 1) vector - effective angles.
+% - NQSS1.NsqVec = (Nv x 1) vector - squared visible occupancies.
 % ---------------------------------
 
 % Basis should be a N_cfg x N matrix. Ensure visible biases align with
 % configurations.
-Ab = (NQSObj.A.').*ones(size(Basis,1),1); ab = (NQSObj.a.').*ones(size(Basis,1),1);
+N_cfgs = size(Basis,1);
+Ab = (NQSObj.A.').*ones(N_cfgs,1); ab = (NQSObj.a.').*ones(N_cfgs,1);
 Psi = exp(sum(Ab.*(Basis.^2) + (ab.*Basis),2)); % Visible bias contributions handled here.
 for h = 1:NQSObj.Nh
     Theta = sum((Basis .* NQSObj.w(h,:)) + (Basis.^2 .* NQSObj.W(h,:)),2) + NQSObj.b(h);
     Psi = Psi .* cosh(Theta);    
 end
-ModPsi = sqrt(sum(abs(Psi).^2)); % Try normalising every hidden unit to avoid numerical overflow.
-    if ModPsi == 0
-        ModPsi = 1;
-    end
-    Psi = Psi/ModPsi;
+if ~isinf(max(abs(Psi)))
+    Psi = Psi/max(abs(Psi)); % Pre-normalisation to avoid runaway arguments.
+end
+ModPsi = sqrt(sum(abs(Psi).^2));
+Psi = Psi/ModPsi;
 end
