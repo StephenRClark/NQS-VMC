@@ -48,7 +48,12 @@ classdef Plus < Reference
            % Don't need to do anything. Later version should include some
            % way to avoid the function call, but initial version will have
            % this empty function called each time rather than 'if' checks.
-        end        
+        end
+
+        % PsiGenerate is just a flat state of equal amplitudes:
+        function [Psi] = PsiGenerate(obj,Basis)
+            N_cfgs = size(Basis,1); Psi = ones(N_cfgs)/sqrt(N_cfgs);
+        end
     end
     
 end

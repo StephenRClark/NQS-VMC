@@ -18,7 +18,7 @@ classdef Graph
         BondMap % Lists of all links between all sites.
         Ntr = 1; % Number of translates in BondMap.
         % Can be the same as Bonds if Graph is specified as not spanning.
-        VecInds = 1;% Lists of number of lattice vector translations per BondMap entry.
+        VecInds = 1; % Lists of number of lattice vector translations per BondMap entry.
     end
     
     methods
@@ -35,7 +35,8 @@ classdef Graph
             obj.Bonds = Bonds;
             for b = 1:numel(Bound)
                 if abs(Bound) > 1
-                    error('Bound entries must be set to 1 (PBC), 0 (closed) or -1 (antiperiodic).');
+                    error(['Bound entries must be set to 1 (PBC), 0 (closed). ...' ...
+                        ' Support for -1 (antiperiodic) may be added in future.']);
                 end
             end
             obj.Bound = Bound;
@@ -49,7 +50,7 @@ classdef Graph
                 end
                 obj.Ntr = size(Bonds,2);
             end
-            obj.SLInds = ones(obj.N,1);
+            obj.SLInds = ones(obj.N,1); % Generally specified later, otherwise assumes no sublattices
         end
         
         % PropertyList: Output a struct with the relevant properties as 
