@@ -1,4 +1,4 @@
-addpath(genpath("..\Ansatze"),genpath("..\Graphs"),genpath("..\Hilbert"));
+addpath(genpath("../Ansatze"),genpath("../Graphs"),genpath("../Hilbert"));
 addpath("Test functions/Modifiers");
 
 % Testing with 4x4 grid of bosons.
