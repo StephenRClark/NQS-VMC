@@ -22,7 +22,7 @@ classdef Bose < Hilbert
     methods
         % Constructor for subclass:
         function obj = Bose(N,Nb,Nmax)
-            if nargin == 3
+            if nargin == 3 && ~isempty(Nb)
                 % Third input is maximum permitted number of bosons per site.
                 obj.N = N; obj.Nb = Nb; obj.Sector = Nb; obj.d = Nmax+1;
                 if Nb/N > Nmax

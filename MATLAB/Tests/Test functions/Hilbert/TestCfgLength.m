@@ -1,4 +1,4 @@
-function [Cfg_cond] = TestRandCfg(Hilbert)
+function [Cfg_cond] = TestCfgLength(Hilbert)
 % This function tests self consistency between RandomCfg, Hilbert.N and
 % FullCfg.
 Cfg = Hilbert.RandomCfg();
