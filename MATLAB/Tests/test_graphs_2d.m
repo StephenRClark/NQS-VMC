@@ -50,8 +50,8 @@ for g = 1:numel(GraphArray)
     disp(['Testing Graph: ' GraphIDs{g}]);
     NumZeros = zeros(1,numel(BoundarySites));
     for b = 1:numel(BoundarySites)
-        EdgeBonds = GraphArray{g}.Bonds(BoundarySites(c),:);
-        NumZeros(c) = sum(EdgeBonds==0);
+        EdgeBonds = GraphArray{g}.Bonds(BoundarySites(b),:);
+        NumZeros(b) = sum(EdgeBonds==0);
     end
     dZeros = NumZeros-EmptyBonds(g,:);
     Edge_cond = (sum(abs(dZeros)) == 0);
