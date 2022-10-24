@@ -200,7 +200,7 @@ if ~short_on_time
     % interesting.
     EnDen = EnAvg/N; 
     % Unpack the other observables into more presentable forms.
-    SzSzAvg = reshape(EvalAvg{1},N,N);
+    SzSzAvg = reshape(EvalAvg{1},Dim(1),Dim(2));
     SzAvg = EvalAvg{2}; SxAvg = EvalAvg{3};
     save('Heisenberg 2D example evaluation.mat','AnsatzObj','EnDen','SzSzAvg','SzAvg','SxAvg');
 else
@@ -210,5 +210,6 @@ disp(['Average energy per site: ' num2str(EnDen)]);
 disp(['Average Sz projection: ' num2str(SzAvg)]);
 disp(['Average Sx projection: ' num2str(SxAvg)]);
 if show_figures
-    figure; imagesc(SzSzAvg); xlabel('Site index'); ylabel('Site index');
+    figure; imagesc(SzSzAvg); xlabel('x'); ylabel('y');
+    title('Averaged Sz-Sz correlations'); colorbar; colormap jet;
 end

@@ -25,8 +25,10 @@ Start from the files `MATLAB/examples/*.m` where scripts are provided for doing 
 
 Coming soon ...
 --------------------
-PDF documentation for the code and a discussion of simple examples is in preparation.
+Documentation for the code and a discussion of simple examples is in preparation.
   
+The index for the current in-progress documentation can be found in [`MATLAB/Documentation/index.md`](MATLAB/Documentation/index.md);
+
 Key publications
 --------------------
 The following papers are related to this project:
