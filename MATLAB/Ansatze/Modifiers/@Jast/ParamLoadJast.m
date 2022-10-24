@@ -18,8 +18,6 @@ function JastObj = ParamLoadJast(JastObj,P)
 % Format for dLogp vector is a (Np x 1) vector of relevant two-site terms.
 % ---------------------------------
 
-P = P.*JastObj.OptInds; % Zeroes out any undesired parameter changes.
-
 JastObj.JsVar = P;
 
 cap = JastObj.ParamCap;
@@ -37,5 +35,5 @@ end
 % Repopulate Jast.Js with the new JsVar values.
 JastObj.Js = JastObj.JsVar(JastObj.JsV);
 
-JastObj.OptInds = (P~=0);
+JastObj.OptInds = [(real(P)~=0), (imag(P)~=0)];
 end

@@ -27,7 +27,7 @@ classdef  Gutz < Modifier
     end
     
     properties (Hidden)
-        OptInds = 1; % One parameter to vary.
+        OptInds = [1 0]; % One parameter to vary.
         ParamCap = 100; % Parameter cap.
     end
     
@@ -53,7 +53,7 @@ classdef  Gutz < Modifier
             if strcmp(Hilbert.Type,'Spin') == 1
                 error('Gutz Modifier subtype is not compatible with spin Hilbert objects.')
             end
-            obj.G = Params.G; obj.Np = 1; obj.OptInds = VFlag;
+            obj.G = Params.G; obj.Np = 1; obj.OptInds = [VFlag, imag(Params.G)~=0];
             % Prepare placeholders for later initialisation in PrepPsi.
             obj.Den = zeros(Hilbert.N,1); obj.Nmean = 0; obj.Graph = Graph;
             if strcmp(Hilbert.Type,'Ferm') == 1
@@ -72,6 +72,7 @@ classdef  Gutz < Modifier
         % PsiUpdate: Update Modifier variational parameters according to
         % changes dP.
         function obj = PsiUpdate(obj,dP)
+            dP = real(dP)*obj.OptInds(1) + 1i*imag(dP)*obj.OptInds(2);
             obj.G = obj.G + dP;
             if real(obj.G) > obj.ParamCap
                 obj.G = obj.ParamCap + imag(obj.G);
@@ -128,6 +129,9 @@ classdef  Gutz < Modifier
             end
             if real(obj.G) < 0
                 obj.G = 0 + imag(obj.G);
+            end
+            if abs(imag(obj.G))>pi
+                obj.G = real(obj.G) + 1i*(mod(imag(obj.G),2*pi)-pi);
             end
         end
         
@@ -236,7 +240,7 @@ function [Psi] = PsiGenerateGFerm(obj,Basis)
 N = size(Basis,2)/2;
 Basis = Basis(:,1:N) + Basis(:,N+(1:N));
 Psi = exp(-obj.G * sum(Basis==2,2));
-Psi = Psi / sum(abs(Psi).^2);
+Psi = Psi / sqrt(sum(abs(Psi).^2));
 end
 
 % --- Exact normalised bosonic Gutzwiller amplitude generating function ---
@@ -245,5 +249,5 @@ function [Psi] = PsiGenerateGBose(obj,Basis)
 N = size(Basis,2); Nmean = sum(Basis(1,:))/N;
 Basis = Basis - Nmean;
 Psi = exp(-obj.G * sum(Basis.^2,2));
-Psi = Psi / sum(abs(Psi).^2);
+Psi = Psi / sqrt(sum(abs(Psi).^2));
 end

@@ -1,11 +1,8 @@
 MATLAB/Results/
 MATLAB/Operators/Observables/
-MATLAB/Scripts/
 MATLAB/Sampler/@GFMCSampler/
 MATLAB/Ansatze/Reference/Pending conversion/
 MATLAB/Ansatze/Reference/@Pfaf
 MATLAB/Ansatze/Modifiers/CPS variants/X Fang variant/
 MATLAB/Ansatze/Modifiers/NQS variants/@NQSMHAI/
 MATLAB/Ansatze/Modifiers/NQS variants/@NQSMHV/
-MATLAB/Ansatze/Modifiers/NQS variants/@NQSP/
-MATLAB/Ansatze/Modifiers/NQS variants/@NQSPTI/

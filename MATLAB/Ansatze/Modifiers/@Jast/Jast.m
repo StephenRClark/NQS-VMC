@@ -34,7 +34,7 @@ classdef Jast < Modifier
     
     properties (Hidden)
         ParamCap = 10; % Parameter cap to mitigate effects of erroneous parameter changes.
-        OptInds = zeros(1,1); % Individual parameter flags for variational purposes.
+        OptInds = ones(1,2); % Individual parameter flags for variational purposes.
         NormFlag = 1; % Normalisation flag - sets the sum of Js to zero if on.
     end
     
@@ -61,8 +61,10 @@ classdef Jast < Modifier
                 % For Jastrow, fermionic systems require conversion of Diff
                 % (performed before Ratio).
                 obj.FullCfg = @FullFermDen; % Only sensitive to density, not spin.
-            else
+            elseif strcmp(Hilbert.Type,'Bose')
                 obj.FFlag = 0; obj.FullCfg = @FullBoseCfg;
+            elseif strcmp(Hilbert.Type,'Spin')
+                obj.FFlag = 0; obj.FullCfg = Hilbert.FullCfgFunc;
             end
             if isempty(Hilbert.Sector)
                 obj.NormFlag = 0;
@@ -139,8 +141,8 @@ classdef Jast < Modifier
                 dLogp(p) = sum(DDMatP(:));
             end            
             % Do some forward error prevention for NaN or Inf elements by zeroing them:
-            dLogp(isnan(dLogp)) = 0;
-            dLogp(isinf(dLogp)) = 0;
+            dLogp = real(dLogp).*(obj.OptInds(:,1)) + 1i*imag(dLogp).*(obj.OptInds(:,2));
+            dLogp(isnan(dLogp)) = 0; dLogp(isinf(dLogp)) = 0;
         end 
         
         % ParamList; outputs an Np x 1 vector of parameter values.

@@ -7,31 +7,62 @@ function dLogp = LogDerivNQS(NQSObj,Cfg)
 % by the structure Cfg.
 % ---------------------------------
 % Format for NQS Modifier object:
-% - NQS.Nv = number of "visible" spins.
-% - NQS.Nh = number of "hidden" spins.
+% - NQS.Nv = number of "visible" units.
+% - NQS.Nh = number of "hidden" units.
 % - NQS.Np = number of parameters in the ansatz = Nv + Nh + (Nv * Nh).
+% - NQS.Alpha = number of unique coupling sets or "hidden unit density".
 % - NQS.a = (Nv x 1) vector - visible site bias.
+% - NQS.av = (Nsl x 1) vector - visible bias parameters.
 % - NQS.b = (Nh x 1) vector - hidden site bias.
+% - NQS.bv = (Alpha x 1) vector - hidden bias parameters.
 % - NQS.W = (Nh x Nv) matrix - hidden-visible coupling terms.
+% - NQS.Wm = (Alpha x Nv) matrix - hidden-visible coupling parameters.
 % - NQS.Theta = (Nh x 1) vector - effective angles.
 % ---------------------------------
 % Format for dLogp vector is a vertically concatenated stack of parameter derivatives:
-% - (Nv x 1) for d/da.
-% - (Nh x 1) for d/db.
-% - (Nh*Nv x 1) for d/dW.
+% - (Nsl x 1) for d/da.
+% - (Alpha x 1) for d/db.
+% - (Alpha*Nv x 1) for d/dW.
+% Arranged [a, v], [a, v+1] ... [a+1, v] ...
 % ---------------------------------
 
 % Make local copies to reduce notation in code below.
-Nv = NQSObj.Nv; % Number of "visible" spins.
-Nh = NQSObj.Nh; % Number of "hidden" spins.
+Nv = NQSObj.Nv; % Number of "visible" units.
+Alpha = NQSObj.Alpha; % Density of "hidden" units.
 
+% Extract information on translational symmetries from Graph.
+GraphObj = NQSObj.Graph; BondMap = GraphObj.BondMap; SLInds = GraphObj.SLInds;
+Ntr = numel(BondMap); % Number of translates - Nh = Ntr*Alpha.
+Nsl = max(SLInds); % Number of sublattices for da.
 Cfg_vec = NQSObj.FullCfg(Cfg); % Build the spin configuration vector.
-
 dLogp = zeros(NQSObj.Np,1); % Initialise full vector of derivatives.
-
-dLogp(1:Nv) = Cfg_vec; % Insert d/da.
-dLogp((Nv+Nh+1):(Nv+Nh+Nv*Nh)) = reshape((tanh(NQSObj.Theta)*Cfg_vec.'),Nh*Nv,1); % Insert d/dW.
-dLogp((Nv+1):(Nv+Nh)) = tanh(NQSObj.Theta); % Insert d/db.
+for s = 1:Nsl
+    if sum(NQSObj.OptInds(s,:)) ~= 0
+        dLogp(s) = sum(Cfg_vec(SLInds==s)); % Insert d/da.
+    end
+end
+dTheta = tanh(NQSObj.Theta);
+% Accounting for shift structure of W matrix requires either construction
+% of shifted Theta matrix or shifted Cfg vector - the latter is done here
+for al=1:Alpha % Derivatives need to be computed by Alpha sector
+    bInd = Nsl+al;
+    if sum(NQSObj.OptInds(Nsl+al,:)) ~= 0
+        dLogp(bInd) = sum(dTheta((1:Ntr)+(al-1)*Ntr)); % Insert d/db.
+    end
+    for v = 1:Nv
+        PInd = Nsl + Alpha + v + (al-1)*Nv;
+        % For each layer labelled by a, find the indices of the associated translates.
+        if sum(NQSObj.OptInds(PInd,:)) ~= 0
+            for bd = 1:Ntr
+                TInd = bd + (al-1)*Ntr; VInd = BondMap{bd}(v);
+                if VInd ~= 0
+                    dLogp(PInd) = dLogp(PInd) + (Cfg_vec(VInd)*dTheta(TInd)); % Insert d/dW.
+                end
+            end
+        end
+    end
+end
 % Do some forward error prevention for NaN or Inf elements by zeroing them:
-dLogp(isnan(dLogp)) = 0;
-dLogp(isinf(dLogp)) = 0;
+dLogp = real(dLogp).*NQSObj.OptInds(:,1) + 1i*imag(dLogp).*NQSObj.OptInds(:,2);
+dLogp(isnan(dLogp)) = 0; dLogp(isinf(dLogp)) = 0;
+end

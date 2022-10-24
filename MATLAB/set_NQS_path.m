@@ -1,5 +1,5 @@
 % Path preample for NQS:
 
-NQS_root = '** your directory **/NQS-VMC/';
+NQS_root = pwd;
 
-addpath(genpath('NQS_root'));
+addpath(genpath(NQS_root));

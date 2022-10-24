@@ -28,42 +28,50 @@ classdef StochasticReconfig < Optimiser
             obj.PSave = round(obj.Npass/20); obj.PShift = 2*obj.PSave;
         end
         
-        % Reassign regularisation parameters if defaults are unsuitable.
+        % SetRegularisation: Reassign regularisation parameters.
         function [obj] = SetRegularisation(obj,lambda0_p,lambda_min_p,b_p)
             obj.lambda0 = lambda0_p; obj.lambda_min = lambda_min_p; obj.b = b_p;
         end
         
-        % Reassign learning rate if default is unsuitable.
+        % SetLearnRate: Reassign learning rate.
         function [obj] = SetLearnRate(obj,LRate_p)
             obj.LRate = LRate_p;
         end
         
-        % Reassign energy and move rate tolerances if defaults are
-        % unsuitable.
+        % SetSRTolerances: Reassign energy and move rate tolerances.
         function [obj] = SetSRTolerances(obj,ETol_p,MRTol_p)
             obj.ETol = ETol_p; obj.MRTol = MRTol_p;            
         end
         
-        % Reassign reroll parameters if defaults are unsuitable.
+        % SetRollback: Reassign reroll parameters.
         function [obj] = SetRollback(obj,PSave_p,PShift_p)
             obj.PSave = PSave_p; obj.PShift = PShift_p;
+        end
+        
+        % SetNpass: adjust number of optimisation passes.
+        function [obj] = SetNpass(obj,Npass_p)
+            if Npass_p <= 0
+                error('New number of optimisation passes should be a positive integer.');
+            end
+            obj.Npass = Npass_p;
+            obj.PSave = round(obj.Npass/20); obj.PShift = 2*obj.PSave;
         end
     end
     
     methods
-        % Generic optimisation - calculate parameter changes for all valid
-        % parameters and apply them.
+        % Optimise: Generic optimisation - calculate parameter changes for
+        % all valid parameters and apply them.
         function [Ansatz,EvalIter] = Optimise(obj,Sampler,Ansatz)
             [Ansatz,EvalIter] = SROptimise(obj,Sampler,Ansatz);            
         end
         
-        % Random batch optimisation - randomly select a subset of the
-        % parameters in the wavefunction for each step and optimise.
+        % RndBatchOptimise: randomly select a subset of the parameters in 
+        % the wavefunction for each step and optimise.
         function [Ansatz,EvalIter] = RndBatchOptimise(obj,Sampler,Ansatz)
             [Ansatz,EvalIter] = SROptimiseRB(obj,Sampler,Ansatz);            
         end
         
-        % Parameter averaging - used as fine-tuning, this averages the
+        % ParamAvgOptimise: used as fine-tuning, this averages the
         % parameters calculated over many sampling / optimisation passes
         % and outputs them in a vector Params.
         function [Ansatz,EnIter,Params] = ParamAvgOptimise(obj,Sampler,Ansatz)

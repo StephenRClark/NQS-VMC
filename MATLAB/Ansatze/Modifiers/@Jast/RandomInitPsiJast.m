@@ -52,4 +52,7 @@ for p = 1:JastObj.Np
     % * exp(2i*pi*Params.nphs*rand); % Jastrow factors normally real.
 end
 
-JastObj.Js = JastObj.JsVar(JsV); JastObj.OptInds = ones(JastObj.Np,1);
+JastObj.Js = JastObj.JsVar(JsV); 
+JastObj.OptInds = [(real(JastObj.JsVar)~=0), (imag(JastObj.JsVar)~=0)];
+
+end

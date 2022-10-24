@@ -5,25 +5,27 @@ function [Params] = ParamListNQSS1(NQSObj)
 % single vector.
 % ---------------------------------
 % Format for NQS Modifier object modified for spin-1:
-% - NQS.Nv = number of "visible" spins.
-% - NQS.Nh = number of "hidden" spins.
-% - NQS.Np = number of parameters in the ansatz = 2*Nv*Nh + 2*Nv + Nh.
-% - NQS.a = (Nv x 1) vector - visible site bias.
-% - NQS.A = (Nv x 1) vector - visible site square bias.
-% - NQS.b = (Nh x 1) vector - hidden site bias.
-% - NQS.w = (Nh x Nv) matrix - hidden-visible linear coupling terms.
-% - NQS.W = (Nh x Nv) matrix - hidden-visible square coupling terms.
-% - NQS.Theta = (Nh x 1) vector - effective angles.
-% - NQS.NsqVec = (Nv x 1) vector - squared visible occupancies.
+% - NQSS1.Nv = number of "visible" spins.
+% - NQSS1.Nh = number of "hidden" spins.
+% - NQSS1.Alpha = number of unique coupling sets or "hidden unit density"
+% - NQSS1.Np = number of parameters in the ansatz = 2*Nv*Nh + 2*Nv + Nh.
+% - NQSS1.a = (Nv x 1) vector - visible site bias.
+% - NQSS1.av = (Nsl x 1) vector - visible bias parameters.
+% - NQSS1.A = (Nv x 1) vector - visible site square bias.
+% - NQSS1.Av = (Nsl x 1) vector - visible square bias parameters.
+% - NQSS1.b = (Nh x 1) vector - hidden site bias.
+% - NQSS1.bv = (Alpha x 1) vector - hidden bias parameters.
+% - NQSS1.w = (Nh x Nv) matrix - hidden-visible linear coupling terms.
+% - NQSS1.wm = (Alpha x Nv) matrix - linear coupling parameters.
+% - NQSS1.W = (Nh x Nv) matrix - hidden-visible square coupling terms.
+% - NQSS1.Wm = (Alpha x Nv) matrix - square coupling parameters.
+% - NQSS1.Theta = (Nh x 1) vector - effective angles.
+% - NQSS1.VisVec = (Nv x 1) vector - visible occupancies vector.
+% - NQSS1.NsqVec = (Nv x 1) vector - squared visible occupancies.
 % ---------------------------------
-
-Nv = NQSObj.Nv; Nh = NQSObj.Nh;
 
 Params = zeros(NQSObj.Np,1);
 
-Params(1:Nv) = NQSObj.a;
-Params((1:Nv)+Nv) = NQSObj.A;
-Params((1:Nh)+2*Nv) = NQSObj.b;
-Params((1:(Nh*Nv))+2*Nv+Nh) = reshape(NQSObj.w,Nh*Nv,1);
-Params((1:(Nh*Nv))+2*Nv+Nh+Nv*Nh) = reshape(NQSObj.W,Nh*Nv,1);
+w_shift = NQSObj.wm.'; W_shift = NQSObj.Wm.';
+Params = Params + [NQSObj.av; NQSObj.Av; NQSObj.bv; w_shift(:); W_shift(:)];
 end

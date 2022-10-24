@@ -5,44 +5,85 @@ function [NQSObj] = AddHiddenNQS(NQSObj,Params)
 % negative). This will necessitate changes in Nh, Np, b, W and Theta.
 % ---------------------------------
 % Format for NQS Modifier object:
-% - NQS.Nv = number of "visible" spins.
-% - NQS.Nh = number of "hidden" spins.
+% - NQS.Nv = number of "visible" units.
+% - NQS.Nh = number of "hidden" units.
 % - NQS.Np = number of parameters in the ansatz = Nv + Nh + (Nv * Nh).
+% - NQS.Alpha = number of unique coupling sets or "hidden unit density".
 % - NQS.a = (Nv x 1) vector - visible site bias.
+% - NQS.av = (Nsl x 1) vector - visible bias parameters.
 % - NQS.b = (Nh x 1) vector - hidden site bias.
+% - NQS.bv = (Alpha x 1) vector - hidden bias parameters.
 % - NQS.W = (Nh x Nv) matrix - hidden-visible coupling terms.
+% - NQS.Wm = (Alpha x Nv) matrix - hidden-visible coupling parameters.
 % - NQS.Theta = (Nh x 1) vector - effective angles.
 % ---------------------------------
 
-% Params requires field NhP, b, W, nphs, nmag.
-
-NhP = round(Params.NhP); % Require integer NhP.
+% Params requires field AlphaP, b, W, nphs, nmag.
+AP = round(Params.AlphaP); % Require integer AlphaP.
 
 % Make local copies to reduce notation in code below.
-Nv = NQSObj.Nv; % Number of "visible" spins.
-Nh0 = NQSObj.Nh; % Number of "hidden" spins.
+Nv = NQSObj.Nv; % Number of "visible" units.
+A0 = NQSObj.Alpha; % Starting hidden unit density.
+OptInds = NQSObj.OptInds; % Optimisation indices, arranged [Re(p), Im(p)]
 
-b = NQSObj.b; W = NQSObj.W;
+% Extract information on translational symmetries from Graph.
+GraphObj = NQSObj.Graph; BondMap = GraphObj.BondMap; Ng = GraphObj.N; SLInds = GraphObj.SLInds;
+Ntr = numel(BondMap); % Number of translates - Nh = Ntr*Alpha.
+Nsl = max(SLInds); % Number of sublattices for da.
 
-if NhP < 0
-    if abs(NhP) >= Nh0
+bv = NQSObj.bv; Wm = NQSObj.Wm;
+
+OptInds_a = OptInds(1:Nsl,:);
+OptInds_b0 = OptInds(Nsl+(1:A0),:);
+OptInds_W0 = OptInds(Nsl+A0+(1:(A0*Nv)),:);
+
+if AP < 0
+    if abs(AP) >= A0
         error('Proposed action removes all hidden units from NQS object.');
     else
-        NhF = Nh0 + NhP;
-        bF = b(1:NhF); WF = W(1:NhF,:);
+        AF = A0 + AP;
+        bvF = bv(1:AF); OptInds_bF = OptInds_b0(1:AF,:);          
+        WmF = Wm(1:AF,:); OptInds_WF = OptInds_W0((1:(AF*Nv)),:);
     end
 else
-    NhF = Nh0 + NhP;
-    bF = zeros(NhP,1); WF = zeros(NhP,Nv);
-    for p = 1:NhP
-        bF(p) = Params.b * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
+    AF = A0 + AP;
+    bvT = zeros(AP,1); WmT = zeros(AP,Nv);
+    for a = 1:AP
+        bvT(a) = Params.b * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
         for v = 1:Nv
-            WF(p,v) = Params.W * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
+            WmT(a,v) = Params.W * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
         end
     end
-    bF = [b; bF]; WF = [W; WF];
+    OptInds_WT_R = (real(WmT.')~=0); OptInds_WT_I = (imag(WmT.')~=0);
+    bvF = [bv; bvT]; OptInds_bT = [(real(bvT)~=0), (imag(bvT)~=0)];
+    WmF = [Wm; WmT]; OptInds_WT = [OptInds_WT_R(:), OptInds_WT_I(:)];
+    OptInds_bF = [OptInds_b0; OptInds_bT];
+    OptInds_WF = [OptInds_W0; OptInds_WT];
 end
 
+Alpha = AF; NhF = Alpha*Ntr;
+
+% Sort out optimisation indices
+OptInds = [OptInds_a; OptInds_bF; OptInds_WF];
+
 % Reassign all fields affected by Nh change.
-NQSObj.Np = Nv + NhF + NhF*Nv; NQSObj.Nh = NhF; NQSObj.Theta = zeros(NhF,1);
-NQSObj.b = bF; NQSObj.W = WF; NQSObj.OptInds = ones(NQSObj.Np,1);
+NQSObj.Np = Nsl + AF + AF*Nv; NQSObj.Nh = NhF; NQSObj.Theta = zeros(NhF,1);
+NQSObj.bv = bvF; NQSObj.Wm = WmF; 
+NQSObj.Alpha = Alpha; NQSObj.OptInds = OptInds;
+
+% Constructing shift invariant W matrix.
+for al = 1:Alpha
+    NQSObj.b((1:Ntr)+(al-1)*Ntr) = NQSObj.bv(al);
+    % For each layer labelled by a, generate the desired translates.
+    for b = 1:numel(BondMap)
+        for n = 1:Nv
+            if BondMap{b}(1+mod(n-1,Ng)) ~= 0 % Check that bond is valid - W(b,n) left empty otherwise.
+                VInd = BondMap{b}(1+mod(n-1,Ng)) + Ng*(ceil(n/Ng)-1);
+                % Account for enlarged lattices where Nv = Ns x Ng.
+                NQSObj.W(b+(al-1)*Ntr,VInd) = NQSObj.Wm(al,n);
+            end
+        end
+    end
+end
+
+end

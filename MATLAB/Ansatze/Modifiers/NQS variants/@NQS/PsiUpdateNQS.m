@@ -1,62 +1,91 @@
 % --- General NQS wave function update function ---
 
-function NQSObj = PsiUpdateNQS(NQSObj,dP)
+function NQSObj = PsiUpdateNQS(NQSObj,P)
 % This function updates the NQS parameters of the ansatz from a vector of
 % parameters P.
-% % ---------------------------------
+% ---------------------------------
 % Format for NQS Modifier object:
-% - NQS.Nv = number of "visible" spins.
-% - NQS.Nh = number of "hidden" spins.
+% - NQS.Nv = number of "visible" units.
+% - NQS.Nh = number of "hidden" units.
 % - NQS.Np = number of parameters in the ansatz = Nv + Nh + (Nv * Nh).
+% - NQS.Alpha = number of unique coupling sets or "hidden unit density".
 % - NQS.a = (Nv x 1) vector - visible site bias.
-% - NQS.b = (1 x Nh) vector - hidden site bias.
+% - NQS.av = (Nsl x 1) vector - visible bias parameters.
+% - NQS.b = (Nh x 1) vector - hidden site bias.
+% - NQS.bv = (Alpha x 1) vector - hidden bias parameters.
 % - NQS.W = (Nh x Nv) matrix - hidden-visible coupling terms.
-% - NQS.Theta = (1 x Nh) vector - effective angles.
+% - NQS.Wm = (Alpha x Nv) matrix - hidden-visible coupling parameters.
+% - NQS.Theta = (Nh x 1) vector - effective angles.
 % ---------------------------------
 % Format for dLogp vector is a vertically concatenated stack of parameter derivatives:
-% - (Nv x 1) for d/da.
-% - (Nh x 1) for d/db.
-% - (Nh*Nv x 1) for d/dW.
+% - (Nsl x 1) for d/da.
+% - (Alpha x 1) for d/db.
+% - (Alpha*Nv x 1) for d/dW.
+% Arranged [a, v], [a, v+1] ... [a+1, v] ...
 % ---------------------------------
 
 % Make local copies to reduce notation in code below.
-Nv = NQSObj.Nv; % Number of "visible" spins.
-Nh = NQSObj.Nh; % Number of "hidden" spins.
+Nv = NQSObj.Nv; % Number of "visible" units.
+Alpha = NQSObj.Alpha; % Density of "hidden" units.
 
-dP = dP.*NQSObj.OptInds; % Zeroes out any undesired parameter changes.
+% Extract information on translational symmetries from Graph.
+GraphObj = NQSObj.Graph; BondMap = GraphObj.BondMap; Ng = GraphObj.N; SLInds = GraphObj.SLInds;
+Ntr = numel(BondMap); % Number of translates - Nh = Ntr*Alpha.
+Nsl = max(SLInds); % Number of sublattices for da.
+
+P = real(P).*NQSObj.OptInds(:,1) + 1i*imag(P).*NQSObj.OptInds(:,2); % Zeroes out any undesired parameter changes.
 
 % Unpack the changes in parameters of the NQS:
-da = dP(1:Nv);
-db = dP((Nv+1):(Nv+Nh));
-dW = reshape(dP((Nv+Nh+1):(Nv+Nh+Nv*Nh)),Nh,Nv);
+da = P(1:Nsl);
+db = P((1:Alpha)+Nsl);
+dW = reshape(P((1:(Alpha*Nv))+Nsl+Alpha),Nv,Alpha).';
 
 % Apply updates to the ansatz:
-NQSObj.a = NQSObj.a + da;
-NQSObj.b = NQSObj.b + db;
-NQSObj.W = NQSObj.W + dW;
+NQSObj.av = NQSObj.av + da;
+NQSObj.bv = NQSObj.bv + db;
+NQSObj.Wm = NQSObj.Wm + dW;
 
 cap = NQSObj.ParamCap;
 
 % Sanity check the values of the ansatz:
-NQSObj.a(isinf(NQSObj.a)) = 0;
-NQSObj.a(isnan(NQSObj.a)) = 0;
-ind = abs(real(NQSObj.a))>cap;
-NQSObj.a(ind) = sign(real(NQSObj.a(ind)))*cap + 1i*imag(NQSObj.a(ind));
-ind = abs(imag(NQSObj.a))>pi;
-NQSObj.a(ind) = real(NQSObj.a(ind)) + 1i*(mod(imag(NQSObj.a(ind))+pi,2*pi)-pi);
+NQSObj.av(isinf(NQSObj.av)) = 0;
+NQSObj.av(isnan(NQSObj.av)) = 0;
+ind = abs(real(NQSObj.av))>cap;
+NQSObj.av(ind) = sign(real(NQSObj.av(ind)))*cap + 1i*imag(NQSObj.av(ind));
+ind = abs(imag(NQSObj.av))>pi;
+NQSObj.av(ind) = real(NQSObj.av(ind)) + 1i*(mod(imag(NQSObj.av(ind))+pi,2*pi)-pi);
 
-NQSObj.b(isinf(NQSObj.b)) = 0;
-NQSObj.b(isnan(NQSObj.b)) = 0;
-ind = abs(real(NQSObj.b))>cap;
-NQSObj.b(ind) = sign(real(NQSObj.b(ind)))*cap + 1i*imag(NQSObj.b(ind));
-ind = abs(imag(NQSObj.b))>pi;
-NQSObj.b(ind) = real(NQSObj.b(ind)) + 1i*(mod(imag(NQSObj.b(ind))+pi,2*pi)-pi);
+NQSObj.bv(isinf(NQSObj.bv)) = 0;
+NQSObj.bv(isnan(NQSObj.bv)) = 0;
+ind = abs(real(NQSObj.bv))>cap;
+NQSObj.bv(ind) = sign(real(NQSObj.bv(ind)))*cap + 1i*imag(NQSObj.bv(ind));
+ind = abs(imag(NQSObj.bv))>pi;
+NQSObj.bv(ind) = real(NQSObj.bv(ind)) + 1i*(mod(imag(NQSObj.bv(ind))+pi,2*pi)-pi);
 
-NQSObj.W(isinf(NQSObj.W)) = 0;
-NQSObj.W(isnan(NQSObj.W)) = 0;
-ind = abs(real(NQSObj.W))>cap;
-NQSObj.W(ind) = sign(real(NQSObj.W(ind)))*cap + 1i*imag(NQSObj.W(ind));
-ind = abs(imag(NQSObj.W))>pi;
-NQSObj.W(ind) = real(NQSObj.W(ind)) + 1i*(mod(imag(NQSObj.W(ind))+pi,2*pi)-pi);
+NQSObj.Wm(isinf(NQSObj.Wm)) = 0;
+NQSObj.Wm(isnan(NQSObj.Wm)) = 0;
+ind = abs(real(NQSObj.Wm))>cap;
+NQSObj.Wm(ind) = sign(real(NQSObj.Wm(ind)))*cap + 1i*imag(NQSObj.Wm(ind));
+ind = abs(imag(NQSObj.Wm))>pi;
+NQSObj.Wm(ind) = real(NQSObj.Wm(ind)) + 1i*(mod(imag(NQSObj.Wm(ind))+pi,2*pi)-pi);
+
+% Repackage the ati, bti and Wv to usual NQS form.
+for n = 1:Nv
+    NQSObj.a(n) = NQSObj.av(SLInds(n));
+end
+% Constructing shift invariant W matrix.
+for al = 1:Alpha
+    NQSObj.b((1:Ntr)+(al-1)*Ntr) = NQSObj.bv(al);
+    % For each layer labelled by a, generate the desired translates.
+    for b = 1:numel(BondMap)
+        for n = 1:Nv
+            if BondMap{b}(1+mod(n-1,Ng)) ~= 0 % Check that bond is valid - W(b,n) left empty otherwise.
+                VInd = BondMap{b}(1+mod(n-1,Ng)) + Ng*(ceil(n/Ng)-1);
+                % Account for enlarged lattices where Nv = Ns x Ng.
+                NQSObj.W(b+(al-1)*Ntr,VInd) = NQSObj.Wm(al,n);
+            end
+        end
+    end
+end
 
 end

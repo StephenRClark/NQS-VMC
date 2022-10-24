@@ -55,7 +55,7 @@ classdef  NNMB < Modifier
             if strcmp(Hilbert.Type,'Bose') == 1
                 obj.FullCfg = @FullBoseCfg;
             end
-            obj.GMB = Params.GMB; obj.Np = 1; obj.OptInds = VFlag;
+            obj.GMB = Params.GMB; obj.Np = 1; obj.OptInds = [VFlag, imag(Params.GMB)~=0];
             % Prepare placeholders for later initialisation in PrepPsi.
             obj.DenFluc = zeros(Hilbert.N,1); obj.Xi = zeros(Hilbert.N,1); obj.Nmean = 0;
             % Generate list of nearest neighbours from Graph.Bonds.
@@ -67,6 +67,7 @@ classdef  NNMB < Modifier
         % PsiUpdate: Update Modifier variational parameters according to
         % changes dP.
         function obj = PsiUpdate(obj,dP)
+            dP = real(dP)*obj.OptInds(1) + 1i*imag(dP)*obj.OptInds(2);
             obj.GMB = obj.GMB + dP;
             if abs(obj.GMB) > obj.ParamCap
                 obj.GMB = sign(obj.GMB) * obj.ParamCap;

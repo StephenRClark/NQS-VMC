@@ -2,7 +2,7 @@ classdef Spin < Hilbert
     % Spin - object containing details of a spin configuration Hilbert
     % space.
     %   Hilbert is overarching class.
-    
+
     properties (SetAccess = protected)
         Type = 'Spin';
         N = 1; % Default to single site if no input.
@@ -10,7 +10,7 @@ classdef Spin < Hilbert
         d = 2; % Single site Hilbert space dimension.
         Sector = []; % Empty sector - assume all Sz sectors permitted if no input.
     end
-    
+
     properties (Hidden, SetAccess = protected)
         PropMoveFunc = @FlipSpinCfg; % Default proposed configuration move.
         FullCfgFunc = @FullSpinCfg; % Default configuration vector for reference state.
@@ -18,7 +18,7 @@ classdef Spin < Hilbert
         Diff2CfgFunc = @Diff2CfgSpinH; % Default difference to configuration conversion function.
         CParams = 1; % Default random configuration parameters.
     end
-    
+
     methods
         % Constructor for subclass:
         function obj = Spin(N,S,Sector)
@@ -77,30 +77,30 @@ classdef Spin < Hilbert
             end
             obj.CParams = CParams;
         end
-        
+
         % RandomCfg: Generate Cfg struct subject to Hilbert parameters.
         function [Cfg] = RandomCfg(obj)
             [Cfg] = obj.RandomCfgFunc(obj.CParams);
         end
-        
+
         % PropMove: Given a Cfg struct, generate a proposed CfgP and
         % corresponding difference struct Diff.
         function [Diff,CfgP] = PropMove(obj,Cfg)
             [Diff,CfgP] = obj.PropMoveFunc(Cfg);
         end
-        
+
         % FullCfg: Given a Cfg struct, create a vector representation of
         % the configuration.
         function [Cfg_vec] = FullCfg(obj,Cfg)
             [Cfg_vec] = obj.FullCfgFunc(Cfg);
         end
-        
+
         % Diff2Cfg: Given a Cfg and Diff struct, combine to create a new
         % CfgP struct.
         function [CfgP] = Diff2Cfg(obj,Diff,Cfg)
             [CfgP] = obj.Diff2CfgFunc(Diff,Cfg);
         end
-        
+
         % ChangePropMove: Change an existing Hilbert object's peoposed move
         % function to a new compatible one. Requires preservation of
         % existing symmetry constraints.
@@ -145,7 +145,7 @@ classdef Spin < Hilbert
                 end
             end
         end
-        
+
         % ChangeStartCfg: Change an existing Hilbert object's proposed move
         % function to a new compatible one. Need both function handle and
         % configuration parameters.
@@ -176,8 +176,8 @@ classdef Spin < Hilbert
                     end
                 end
             end
-        end        
-             
+        end
+
         % PropertyList: Output a struct with the relevant properties as
         % separate fields. Used for interfacing with C++ code.
         function [Properties] = PropertyList(obj)
@@ -185,5 +185,5 @@ classdef Spin < Hilbert
             Properties.Sector = obj.Sector;
         end
     end
-    
+
 end

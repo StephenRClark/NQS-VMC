@@ -34,5 +34,6 @@ for p = 1:JastObj.Np
 end
 
 % Do some forward error prevention for NaN or Inf elements by zeroing them:
-dLogp(isnan(dLogp)) = 0;
-dLogp(isinf(dLogp)) = 0;
+dLogp = real(dLogp).*(obj.OptInds(:,1)) + 1i*imag(dLogp).*(obj.OptInds(:,2));
+dLogp(isnan(dLogp)) = 0; dLogp(isinf(dLogp)) = 0;
+end
