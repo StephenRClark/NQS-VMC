@@ -1,29 +1,31 @@
-classdef NQSB < Modifier
-    % NQSB - a NQS Modifier variant that introduces square visible biases
+classdef NQSC < Modifier
+    % NQSC - a NQS Modifier variant that introduces square visible biases
     % and hidden biases. This variant is tuned for systems with non-binary
     % visible dimension and hidden dimension.
     %   NQS is overarching class, which is itself a subclass of Modifier.
-    %   NQSB draws translational symmetries from the provided Graph object.
+    %   NQSC draws translational symmetries from the provided Graph object.
 
     % ---------------------------------
-    % Format for NQSB Modifier:
-    % - NQSB.Nv = number of "visible" units.
-    % - NQSB.Nh = number of "hidden" units.
-    % - NQSB.Np = number of parameters in the ansatz = 2*Alpha + Alpha*Nv + 2*Nsl.
-    % - NQSB.a = (Nv x 1) vector - visible site bias.
-    % - NQSB.av = (Nsl x 1) vector - visible bias parameters.
-    % - NQSB.A = (Nv x 1) vector - visible site square bias.
-    % - NQSB.Av = (Nsl x 1) vector - visible square bias parameters.
-    % - NQSB.b = (Nh x 1) vector - hidden site bias.
-    % - NQSB.bv = (Alpha x 1) vector - hidden bias parameters.
-    % - NQSB.B = (Nh x 1) vector- hidden site square bias.
-    % - NQSB.Bv = (Alpha x 1) vector - hidden square bias parameters.
-    % - NQSB.W = (Nh x Nv) matrix - hidden-visible coupling terms.
-    % - NQSB.Wm = (Alpha x Nv) matrix - coupling parameters.
-    % - NQSB.Alpha = number of unique coupling sets or "hidden unit density".
-    % - NQSB.HDim = dimension of the hidden units.
-    % - NQSB.Theta = (Nh x 1) vector - effective angles.
-    % - NQSB.NsqVec = (Nv x 1) vector - squared visible occupancies.
+    % Format for NQSC Modifier:
+    % - NQSC.Nv = number of "visible" units.
+    % - NQSC.Nh = number of "hidden" units.
+    % - NQSC.Np = number of parameters in the ansatz = 2*Alpha + 2*Alpha*Nv + 2*Nsl.
+    % - NQSC.a = (Nv x 1) vector - visible site bias.
+    % - NQSC.av = (Nsl x 1) vector - visible bias parameters.
+    % - NQSC.A = (Nv x 1) vector - visible site square bias.
+    % - NQSC.Av = (Nsl x 1) vector - visible square bias parameters.
+    % - NQSC.b = (Nh x 1) vector - hidden site bias.
+    % - NQSC.bv = (Alpha x 1) vector - hidden bias parameters.
+    % - NQSC.B = (Nh x 1) vector- hidden site square bias.
+    % - NQSC.Bv = (Alpha x 1) vector - hidden square bias parameters.
+    % - NQSC.w = (Nh x Nv) matrix - hidden-visible coupling terms.
+    % - NQSC.wm = (Alpha x Nv) matrix - coupling parameters
+    % - NQSC.W = (Nh x Nv) matrix - hidden-square-visible coupling terms.
+    % - NQSC.Wm = (Alpha x Nv) matrix - coupling parameters.
+    % - NQSC.Alpha = number of unique coupling sets or "hidden unit density".
+    % - NQSC.HDim = dimension of the hidden units.
+    % - NQSC.Theta = (Nh x 1) vector - effective angles.
+    % - NQSC.NsqVec = (Nv x 1) vector - squared visible occupancies.
     % ---------------------------------
     % Format for Update is a struct with two fields:
     % Update.Theta - vector of new effective angles ThetaP.
@@ -34,6 +36,7 @@ classdef NQSB < Modifier
     % - (Nsl x 1) for d/dA.
     % - (Alpha x 1) for d/db.
     % - (Alpha x 1) for d/dB
+    % - (Alpha*Nv x 1) for d/dw.
     % - (Alpha*Nv x 1) for d/dW.
     % ---------------------------------
 
@@ -55,7 +58,9 @@ classdef NQSB < Modifier
         bv = 0; % Hidden bias parameters, Alpha x 1 vector,
         B = 0; % Hidden square bias terms, Nh x 1 vector.
         Bv = 0; % Hidden square bias parameters, Alpha x 1 vector.
-        W = 0; % Hidden-visible coupling terms, Nh x Nv matrix.
+        w = 0; % Hidden-visible coupling terms, Nh x Nv matrix.
+        wm = 0; % Coupling parameters, Alpha x Nv matrix.
+        W = 0; % Hidden-square-visible coupling terms, Nh x Nv matrix.
         Wm = 0; % Coupling parameters, Alpha x Nv matrix.
         Graph; % Details connectivity of lattice - used to include symmetries.
     end
@@ -73,7 +78,7 @@ classdef NQSB < Modifier
 
     methods
         % Constructor for general number hidden NQS:
-        function obj = NQSB(Hilbert,Graph,Params,VFlag)
+        function obj = NQSC(Hilbert,Graph,Params,VFlag)
             % Graph necessary for NQS subvariants as second argument.
             if nargin == 4 % Assume variational if no VFlag specified.
                 obj.VFlag = VFlag;
@@ -105,13 +110,13 @@ classdef NQSB < Modifier
                 obj.Alpha = ceil(Params.Nh/Hilbert.N); obj.Nh = obj.Alpha*Hilbert.N;
             end
             obj.Graph = Graph;
-            obj = RandomInitPsiNQSB(obj,Params);
+            obj = RandomInitPsiNQSC(obj,Params);
         end
 
         % PsiUpdate: Update Modifier variational parameters according to
         % changes dP.
         function obj = PsiUpdate(obj,dP)
-            obj = PsiUpdateNQSB(obj,dP);
+            obj = PsiUpdateNQSC(obj,dP);
         end
 
         % PsiCfgUpdate: Update Modifier configuration information inside
@@ -123,19 +128,19 @@ classdef NQSB < Modifier
         % PrepPsi: Initialise Modifier configuration information given a
         % starting Cfg.
         function obj = PrepPsi(obj,Cfg)
-            obj = PrepPsiNQSB(obj,Cfg);
+            obj = PrepPsiNQSC(obj,Cfg);
         end
 
         % PsiGenerate: Generate full normalised NQS amplitudes for a given
         % set of basis states.
         function [Psi] = PsiGenerate(obj,Basis)
-            Psi = PsiGenerateNQSB(obj,Basis);
+            Psi = PsiGenerateNQSC(obj,Basis);
         end
 
         % AddHidden: Generate additional hidden units and associated
         % parameters.
         function [obj] = AddHidden(obj,Params)
-            obj = AddHiddenNQSB(obj,Params);
+            obj = AddHiddenNQSC(obj,Params);
         end
 
         % PsiRatio: Ratio of amplitudes for two configurations separated by
@@ -146,8 +151,9 @@ classdef NQSB < Modifier
             Nsq_shift = zeros(obj.Nv,1);
             % Only loop over the sites where there are differences:
             for i=1:Diff.num
-                Theta_shift = Theta_shift + Diff.val(i)*obj.W(:,Diff.pos(i));
                 Nsq_shift(Diff.pos(i)) = 2*sqrt(obj.NsqVec(Diff.pos(i)))*Diff.val(i) + (Diff.val(i)^2);
+                Theta_shift = Theta_shift + Diff.val(i)*obj.w(:,Diff.pos(i)) ...
+                    + Nsq_shift(Diff.pos(i))*obj.W(:,Diff.pos(i)); % Add square shift
             end
             NsqP = obj.NsqVec + Nsq_shift;% Update the squared occupancy vector for the proposed configuration.
             Ratio = Ratio * exp(sum(Nsq_shift(Diff.pos).*obj.A(Diff.pos))); % Compute visible square bias contribution.
@@ -185,12 +191,21 @@ classdef NQSB < Modifier
                     dLogp(BInd) = sum(dB((1:Ntr)+(al-1)*Ntr)); % Insert d/dB.
                 end
                 for v = 1:obj.Nv
-                    PInd = 2*Nsl + 2*obj.Alpha + (al-1)*obj.Nv + v;
-                    if sum(obj.OptInds(PInd,:)) ~= 0
+                    PIndw = 2*Nsl + 2*obj.Alpha + (al-1)*obj.Nv + v;
+                    PIndW = PIndw + obj.Alpha*obj.Nv;
+                    if sum(obj.OptInds(PIndw,:)) ~= 0
                         for bd = 1:numel(BondMap)
                             HInd = bd + (al-1)*Ntr; VInd = BondMap{bd}(v);
                             if VInd ~= 0
-                                dLogp(PInd) = dLogp(PInd) + Cfg_vec(VInd)*dTheta(HInd);
+                                dLogp(PIndw) = dLogp(PIndw) + Cfg_vec(VInd)*dTheta(HInd); % Insert d/dw.
+                            end
+                        end
+                    end
+                    if sum(obj.OptInds(PIndW,:)) ~= 0
+                        for bd = 1:numel(BondMap)
+                            HInd = bd + (al-1)*Ntr; VInd = BondMap{bd}(v);
+                            if VInd ~= 0
+                                dLogp(PIndW) = dLogp(PIndW) + (Cfg_vec(VInd)^2)*dTheta(HInd); % Insert d/dW.
                             end
                         end
                     end
@@ -203,18 +218,18 @@ classdef NQSB < Modifier
 
         % ParamList: outputs a Np x 1 vector of parameters.
         function [Params] = ParamList(obj)
-            Params = ParamListNQSB(obj);
+            Params = ParamListNQSC(obj);
         end
 
         % ParamLoad: replaces parameters with the provided ones in vector P.
         function [obj] = ParamLoad(obj,P)
-            obj = ParamLoadNQSB(obj,P);
+            obj = ParamLoadNQSC(obj,P);
         end
 
         % PropertyList: Output a struct with the relevant properties as
         % separate fields. Used for interfacing with C++ code.
         function [Properties] = PropertyList(obj)
-            Properties.Type = 'NQSB';
+            Properties.Type = 'NQSC';
             Properties.Graph = obj.Graph.PropertyList; Properties.OptInds = obj.OptInds;
             Properties.Nv = obj.Nv; Properties.Nh = obj.Nh; Properties.Alpha = obj.Alpha;
             Properties.Params = obj.ParamList; Properties.ParamCap = obj.ParamCap;

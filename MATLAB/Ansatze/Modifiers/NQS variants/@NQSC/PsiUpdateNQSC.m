@@ -1,33 +1,36 @@
-% --- General NQS wave function parameter overwrite function ---
+% --- General NQS wave function update function ---
 
-function NQSObj = ParamLoadNQSB(NQSObj,P)
-% This function replaces the NQS parameters of the ansatz from a vector of
+function NQSObj = PsiUpdateNQSC(NQSObj,P)
+% This function updates the NQS parameters of the ansatz from a vector of
 % parameters P.
 % ---------------------------------
-% Format for NQSB Modifier:
-% - NQSB.Nv = number of "visible" units.
-% - NQSB.Nh = number of "hidden" units.
-% - NQSB.Np = number of parameters in the ansatz = 2*Alpha + Alpha*Nv + 2*Nsl.
-% - NQSB.a = (Nv x 1) vector - visible site bias.
-% - NQSB.av = (Nsl x 1) vector - visible bias parameters.
-% - NQSB.A = (Nv x 1) vector - visible site square bias.
-% - NQSB.Av = (Nsl x 1) vector - visible square bias parameters.
-% - NQSB.b = (Nh x 1) vector - hidden site bias.
-% - NQSB.bv = (Alpha x 1) vector - hidden bias parameters.
-% - NQSB.B = (Nh x 1) vector- hidden site square bias.
-% - NQSB.Bv = (Alpha x 1) vector - hidden square bias parameters.
-% - NQSB.W = (Nh x Nv) matrix - hidden-visible coupling terms.
-% - NQSB.Wm = (Alpha x Nv) matrix - coupling parameters.
-% - NQSB.Alpha = number of unique coupling sets or "hidden unit density".
-% - NQSB.HDim = dimension of the hidden units.
-% - NQSB.Theta = (Nh x 1) vector - effective angles.
-% - NQSB.NsqVec = (Nv x 1) vector - squared visible occupancies.
+% Format for NQSC Modifier:
+% - NQSC.Nv = number of "visible" units.
+% - NQSC.Nh = number of "hidden" units.
+% - NQSC.Np = number of parameters in the ansatz = 2*Alpha + 2*Alpha*Nv + 2*Nsl.
+% - NQSC.a = (Nv x 1) vector - visible site bias.
+% - NQSC.av = (Nsl x 1) vector - visible bias parameters.
+% - NQSC.A = (Nv x 1) vector - visible site square bias.
+% - NQSC.Av = (Nsl x 1) vector - visible square bias parameters.
+% - NQSC.b = (Nh x 1) vector - hidden site bias.
+% - NQSC.bv = (Alpha x 1) vector - hidden bias parameters.
+% - NQSC.B = (Nh x 1) vector- hidden site square bias.
+% - NQSC.Bv = (Alpha x 1) vector - hidden square bias parameters.
+% - NQSC.w = (Nh x Nv) matrix - hidden-visible coupling terms.
+% - NQSC.wm = (Alpha x Nv) matrix - coupling parameters
+% - NQSC.W = (Nh x Nv) matrix - hidden-square-visible coupling terms.
+% - NQSC.Wm = (Alpha x Nv) matrix - coupling parameters.
+% - NQSC.Alpha = number of unique coupling sets or "hidden unit density".
+% - NQSC.HDim = dimension of the hidden units.
+% - NQSC.Theta = (Nh x 1) vector - effective angles.
+% - NQSC.NsqVec = (Nv x 1) vector - squared visible occupancies.
 % ---------------------------------
 % Format for dLogp vector is a vertically concatenated stack of parameter derivatives:
 % - (Nsl x 1) for d/da.
 % - (Nsl x 1) for d/dA.
 % - (Alpha x 1) for d/db.
 % - (Alpha x 1) for d/dB
+% - (Alpha*Nv x 1) for d/dw.
 % - (Alpha*Nv x 1) for d/dW.
 % ---------------------------------
 
@@ -40,19 +43,23 @@ GraphObj = NQSObj.Graph; BondMap = GraphObj.BondMap; Ng = GraphObj.N; SLInds = G
 Ntr = numel(BondMap); % Number of translates - Nh = Ntr*Alpha.
 Nsl = max(SLInds); % Number of sublattices for da.
 
+P = real(P).*NQSObj.OptInds(:,1) + 1i*imag(P).*NQSObj.OptInds(:,2); % Zeroes out any undesired parameter changes.
+
 % Unpack the changes in parameters of the NQS:
 da = P(1:Nsl);
 dA = P((1:Nsl) + Nsl);
 db = P((1:Alpha) + 2*Nsl);
 dB = P((1:Alpha) + 2*Nsl + Alpha);
-dW = reshape(P((1:(Nv*Alpha)) + 2*Nsl + 2*Alpha),Nv,Alpha).';
+dw = reshape(P((1:(Nv*Alpha)) + 2*Nsl + 2*Alpha),Nv,Alpha).';
+dW = reshape(P((1:(Nv*Alpha)) + 2*Nsl + 2*Alpha + Alpha*Nv),Nv,Alpha).';
 
 % Apply updates to the ansatz:
-NQSObj.av = da;
-NQSObj.Av = dA;
-NQSObj.bv = db;
-NQSObj.Bv = dB;
-NQSObj.Wm = dW;
+NQSObj.av = NQSObj.av + da;
+NQSObj.Av = NQSObj.Av + dA;
+NQSObj.bv = NQSObj.bv + db;
+NQSObj.Bv = NQSObj.Bv + dB;
+NQSObj.wm = NQSObj.wm + dw;
+NQSObj.Wm = NQSObj.Wm + dW;
 
 cap = NQSObj.ParamCap;
 
@@ -85,14 +92,19 @@ NQSObj.Bv(ind) = sign(real(NQSObj.Bv(ind)))*cap + 1i*imag(NQSObj.Bv(ind));
 ind = abs(imag(NQSObj.B))>pi;
 NQSObj.Bv(ind) = real(NQSObj.Bv(ind)) + 1i*(mod(imag(NQSObj.Bv(ind))+pi,2*pi)-pi);
 
+NQSObj.wm(isinf(NQSObj.wm)) = 0;
+NQSObj.wm(isnan(NQSObj.wm)) = 0;
+ind = abs(real(NQSObj.wm))>cap;
+NQSObj.wm(ind) = sign(real(NQSObj.wm(ind)))*cap + 1i*imag(NQSObj.wm(ind));
+ind = abs(imag(NQSObj.wm))>pi;
+NQSObj.wm(ind) = real(NQSObj.wm(ind)) + 1i*(mod(imag(NQSObj.wm(ind))+pi,2*pi)-pi);
+
 NQSObj.Wm(isinf(NQSObj.Wm)) = 0;
 NQSObj.Wm(isnan(NQSObj.Wm)) = 0;
 ind = abs(real(NQSObj.Wm))>cap;
 NQSObj.Wm(ind) = sign(real(NQSObj.Wm(ind)))*cap + 1i*imag(NQSObj.Wm(ind));
 ind = abs(imag(NQSObj.Wm))>pi;
 NQSObj.Wm(ind) = real(NQSObj.Wm(ind)) + 1i*(mod(imag(NQSObj.Wm(ind))+pi,2*pi)-pi);
-
-NQSObj.OptInds = [(real(P)~=0), (imag(P)~=0)]; % Assume the non-zero parameters are intended to be varied.
 
 % Repackage the ati, bti and Wv to usual NQS form.
 for n = 1:Nv
@@ -109,6 +121,7 @@ for al = 1:Alpha
             if BondMap{b}(1+mod(n-1,Ng)) ~= 0 % Check that bond is valid - W(b,n) left empty otherwise.
                 VInd = BondMap{b}(1+mod(n-1,Ng)) + Ng*(ceil(n/Ng)-1);
                 % Account for enlarged lattices where Nv = Ns x Ng.
+                NQSObj.w(b+(al-1)*Ntr,VInd) = NQSObj.wm(al,n);
                 NQSObj.W(b+(al-1)*Ntr,VInd) = NQSObj.Wm(al,n);
             end
         end

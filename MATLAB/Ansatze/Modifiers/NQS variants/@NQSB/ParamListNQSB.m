@@ -7,7 +7,7 @@ function [Params] = ParamListNQSB(NQSObj)
 % Format for NQSB Modifier:
 % - NQSB.Nv = number of "visible" units.
 % - NQSB.Nh = number of "hidden" units.
-% - NQSB.Np = number of parameters in the ansatz = Alpha + Alpha*Nv + 2*Nsl.
+% - NQSB.Np = number of parameters in the ansatz = 2*Alpha + Alpha*Nv + 2*Nsl.
 % - NQSB.a = (Nv x 1) vector - visible site bias.
 % - NQSB.av = (Nsl x 1) vector - visible bias parameters.
 % - NQSB.A = (Nv x 1) vector - visible site square bias.

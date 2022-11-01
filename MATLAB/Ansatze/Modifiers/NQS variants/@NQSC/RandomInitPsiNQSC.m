@@ -1,28 +1,30 @@
 % --- General NQS wave function random initialisation function ---
 
-function [NQSObj] = RandomInitPsiNQSB(NQSObj,Params)
+function [NQSObj] = RandomInitPsiNQSC(NQSObj,Params)
 % This function populates random initial NQS ansatz structure. The input
 % NQS is assumed to have Nv and Nh defined already. The Params structure
 % contains information controlling the form of random elements generated.
 % ---------------------------------
-% Format for NQSB Modifier:
-% - NQSB.Nv = number of "visible" units.
-% - NQSB.Nh = number of "hidden" units.
-% - NQSB.Np = number of parameters in the ansatz = 2*Alpha + Alpha*Nv + 2*Nsl.
-% - NQSB.a = (Nv x 1) vector - visible site bias.
-% - NQSB.av = (Nsl x 1) vector - visible bias parameters./
-% - NQSB.A = (Nv x 1) vector - visible site square bias.
-% - NQSB.Av = (Nsl x 1) vector - visible square bias parameters.
-% - NQSB.b = (Nh x 1) vector - hidden site bias.
-% - NQSB.bv = (Alpha x 1) vector - hidden bias parameters.
-% - NQSB.B = (Nh x 1) vector- hidden site square bias.
-% - NQSB.Bv = (Alpha x 1) vector - hidden square bias parameters.
-% - NQSB.W = (Nh x Nv) matrix - hidden-visible coupling terms.
-% - NQSB.Wm = (Alpha x Nv) matrix - coupling parameters.
-% - NQSB.Alpha = number of unique coupling sets or "hidden unit density".
-% - NQSB.HDim = dimension of the hidden units.
-% - NQSB.Theta = (Nh x 1) vector - effective angles.
-% - NQSB.NsqVec = (Nv x 1) vector - squared visible occupancies.
+% Format for NQSC Modifier:
+% - NQSC.Nv = number of "visible" units.
+% - NQSC.Nh = number of "hidden" units.
+% - NQSC.Np = number of parameters in the ansatz = 2*Alpha + 2*Alpha*Nv + 2*Nsl.
+% - NQSC.a = (Nv x 1) vector - visible site bias.
+% - NQSC.av = (Nsl x 1) vector - visible bias parameters.
+% - NQSC.A = (Nv x 1) vector - visible site square bias.
+% - NQSC.Av = (Nsl x 1) vector - visible square bias parameters.
+% - NQSC.b = (Nh x 1) vector - hidden site bias.
+% - NQSC.bv = (Alpha x 1) vector - hidden bias parameters.
+% - NQSC.B = (Nh x 1) vector- hidden site square bias.
+% - NQSC.Bv = (Alpha x 1) vector - hidden square bias parameters.
+% - NQSC.w = (Nh x Nv) matrix - hidden-visible coupling terms.
+% - NQSC.wm = (Alpha x Nv) matrix - coupling parameters
+% - NQSC.W = (Nh x Nv) matrix - hidden-square-visible coupling terms.
+% - NQSC.Wm = (Alpha x Nv) matrix - coupling parameters.
+% - NQSC.Alpha = number of unique coupling sets or "hidden unit density".
+% - NQSC.HDim = dimension of the hidden units.
+% - NQSC.Theta = (Nh x 1) vector - effective angles.
+% - NQSC.NsqVec = (Nv x 1) vector - squared visible occupancies.
 % ---------------------------------
 
 % Make local copies to reduce notation in code below.
@@ -34,7 +36,7 @@ GraphObj = NQSObj.Graph; BondMap = GraphObj.BondMap; Ng = GraphObj.N; SLInds = G
 Ntr = numel(BondMap); % Number of translates - Nh = Ntr*Alpha.
 Nsl = max(SLInds); % Number of sublattices for da.
 
-NQSObj.Np = 2*Nsl + 2*Alpha + (Nv * Alpha); % The number of variational parameters.
+NQSObj.Np = 2*Nsl + 2*Alpha + 2*(Nv * Alpha); % The number of variational parameters.
 Nh = Alpha * Ntr; NQSObj.Nh = Nh; % The number of hidden units, including translates.
 
 % Initialise the storage:
@@ -46,15 +48,20 @@ NQSObj.b = zeros(Nh,1);
 NQSObj.bv = zeros(Alpha,1);
 NQSObj.B = zeros(Nh,1);
 NQSObj.Bv = zeros(Alpha,1);
+NQSObj.w = zeros(Nh,Nv);
+NQSObj.wm = zeros(Alpha,Nv);
 NQSObj.W = zeros(Nh,Nv);
 NQSObj.Wm = zeros(Alpha,Nv);
 NQSObj.Theta = zeros(Nh,1);
 
-if isfield(Params,'A') == 0
+if ~isfield(Params,'A')
     Params.A = Params.a;
 end
-if isfield(Params,'B') == 0
+if ~isfield(Params,'B')
     Params.B = Params.b;
+end
+if ~isfield(Params,'w')
+    Params.w = Params.W;
 end
 
 for v = 1:Nsl
@@ -65,6 +72,7 @@ for al = 1:Alpha
     NQSObj.bv(al) = (Params.b + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand)*(Params.b~=0);
     NQSObj.Bv(al) = (Params.B + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand)*(Params.B~=0);
     for v = 1:Nv
+        NQSObj.wm(al,v) = (Params.W + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand)*(Params.W~=0);
         NQSObj.Wm(al,v) = (Params.W + 2*Params.nmag*(rand-0.5)) * exp(2i*pi*Params.nphs*rand)*(Params.W~=0);
     end
 end
@@ -84,6 +92,7 @@ for al = 1:Alpha
             if BondMap{b}(1+mod(n-1,Ng)) ~= 0 % Check that bond is valid - W(b,n) left empty otherwise.
                 VInd = BondMap{b}(1+mod(n-1,Ng)) + Ng*(ceil(n/Ng)-1);
                 % Account for enlarged lattices where Nv = Ns x Ng.
+                NQSObj.w(b+(al-1)*Ntr,VInd) = NQSObj.wm(al,n);
                 NQSObj.W(b+(al-1)*Ntr,VInd) = NQSObj.Wm(al,n);
             end
         end
@@ -94,7 +103,7 @@ end
 
 NQSObj.OptInds = [(real(NQSObj.av)~=0), (imag(NQSObj.av)~=0); (real(NQSObj.Av)~=0),...
     (imag(NQSObj.Av)~=0); (real(NQSObj.bv)~=0), (imag(NQSObj.bv)~=0);...
-    (real(NQSObj.Bv)~=0), (imag(NQSObj.Bv)~=0); (real(NQSObj.Wm(:))~=0),...
-    (imag(NQSObj.Wm(:))~=0)];
+    (real(NQSObj.Bv)~=0), (imag(NQSObj.Bv)~=0); (real(NQSObj.wm(:))~=0),...
+    (imag(NQSObj.wm(:))~=0); (real(NQSObj.Wm(:))~=0), (imag(NQSObj.Wm(:))~=0)];
 
 end

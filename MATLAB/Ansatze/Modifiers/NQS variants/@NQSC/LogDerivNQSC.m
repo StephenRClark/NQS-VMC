@@ -1,35 +1,38 @@
 % --- General NQS logarithmic derivative function ---
 
-function dLogp = LogDerivNQSB(NQSObj,Cfg)
+function dLogp = LogDerivNQSC(NQSObj,Cfg)
 % This function computes the logarithmic derivative:
 %            dLogp = 1/Psi(Cfg) dPsi(Cfg)/dp
 % w.r.t. each parameter p of the NQS ansatz, for a  configuration specifed
 % by the structure Cfg.
 % ---------------------------------
-% Format for NQSB Modifier:
-% - NQSB.Nv = number of "visible" units.
-% - NQSB.Nh = number of "hidden" units.
-% - NQSB.Np = number of parameters in the ansatz = 2*Alpha + Alpha*Nv + 2*Nsl.
-% - NQSB.a = (Nv x 1) vector - visible site bias.
-% - NQSB.av = (Nsl x 1) vector - visible bias parameters.
-% - NQSB.A = (Nv x 1) vector - visible site square bias.
-% - NQSB.Av = (Nsl x 1) vector - visible square bias parameters.
-% - NQSB.b = (Nh x 1) vector - hidden site bias.
-% - NQSB.bv = (Alpha x 1) vector - hidden bias parameters.
-% - NQSB.B = (Nh x 1) vector- hidden site square bias.
-% - NQSB.Bv = (Alpha x 1) vector - hidden square bias parameters.
-% - NQSB.W = (Nh x Nv) matrix - hidden-visible coupling terms.
-% - NQSB.Wm = (Alpha x Nv) matrix - coupling parameters.
-% - NQSB.Alpha = number of unique coupling sets or "hidden unit density".
-% - NQSB.HDim = dimension of the hidden units.
-% - NQSB.Theta = (Nh x 1) vector - effective angles.
-% - NQSB.NsqVec = (Nv x 1) vector - squared visible occupancies.
+% Format for NQSC Modifier:
+% - NQSC.Nv = number of "visible" units.
+% - NQSC.Nh = number of "hidden" units.
+% - NQSC.Np = number of parameters in the ansatz = 2*Alpha + 2*Alpha*Nv + 2*Nsl.
+% - NQSC.a = (Nv x 1) vector - visible site bias.
+% - NQSC.av = (Nsl x 1) vector - visible bias parameters.
+% - NQSC.A = (Nv x 1) vector - visible site square bias.
+% - NQSC.Av = (Nsl x 1) vector - visible square bias parameters.
+% - NQSC.b = (Nh x 1) vector - hidden site bias.
+% - NQSC.bv = (Alpha x 1) vector - hidden bias parameters.
+% - NQSC.B = (Nh x 1) vector- hidden site square bias.
+% - NQSC.Bv = (Alpha x 1) vector - hidden square bias parameters.
+% - NQSC.w = (Nh x Nv) matrix - hidden-visible coupling terms.
+% - NQSC.wm = (Alpha x Nv) matrix - coupling parameters
+% - NQSC.W = (Nh x Nv) matrix - hidden-square-visible coupling terms.
+% - NQSC.Wm = (Alpha x Nv) matrix - coupling parameters.
+% - NQSC.Alpha = number of unique coupling sets or "hidden unit density".
+% - NQSC.HDim = dimension of the hidden units.
+% - NQSC.Theta = (Nh x 1) vector - effective angles.
+% - NQSC.NsqVec = (Nv x 1) vector - squared visible occupancies.
 % ---------------------------------
 % Format for dLogp vector is a vertically concatenated stack of parameter derivatives:
 % - (Nsl x 1) for d/da.
 % - (Nsl x 1) for d/dA.
 % - (Alpha x 1) for d/db.
 % - (Alpha x 1) for d/dB
+% - (Alpha*Nv x 1) for d/dw.
 % - (Alpha*Nv x 1) for d/dW.
 % ---------------------------------
 
@@ -66,12 +69,21 @@ for al = 1:Alpha
         dLogp(BInd) = sum(dB((1:Ntr)+(al-1)*Ntr)); % Insert d/dB.
     end
     for v = 1:Nv
-        PInd = 2*Nsl + 2*Alpha + (al-1)*Nv + v;
-        if sum(NQSObj.OptInds(PInd,:)) ~= 0
+        PIndw = 2*Nsl + 2*Alpha + (al-1)*Nv + v;
+        PIndW = PIndw + Alpha*Nv;
+        if sum(NQSObj.OptInds(PIndw,:)) ~= 0
             for bd = 1:numel(BondMap)
                 HInd = bd + (al-1)*Ntr; VInd = BondMap{bd}(v);
                 if VInd ~= 0
-                    dLogp(PInd) = dLogp(PInd) + Cfg_vec(VInd)*dTheta(HInd);
+                    dLogp(PIndw) = dLogp(PIndw) + Cfg_vec(VInd)*dTheta(HInd);
+                end
+            end
+        end
+        if sum(NQSObj.OptInds(PIndW,:)) ~= 0
+            for bd = 1:numel(BondMap)
+                HInd = bd + (al-1)*Ntr; VInd = BondMap{bd}(v);
+                if VInd ~= 0
+                    dLogp(PIndW) = dLogp(PIndW) + (Cfg_vec(VInd)^2)*dTheta(HInd);
                 end
             end
         end

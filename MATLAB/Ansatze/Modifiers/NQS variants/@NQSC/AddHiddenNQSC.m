@@ -1,29 +1,31 @@
 % --- General NQS wave function hidden unit addition function ---
 
-function [NQSObj] = AddHiddenNQSB(NQSObj,Params)
+function [NQSObj] = AddHiddenNQSC(NQSObj,Params)
 % This function adds NhP new hidden units to an existing NQSObj (removes if
 % negative). This will necessitate changes in Nh, Np, b, B, W and Theta.
 % ---------------------------------
-% Format for NQSB Modifier:
-% - NQSB.Nv = number of "visible" units.
-% - NQSB.Nh = number of "hidden" units.
-% - NQSB.Np = number of parameters in the ansatz = 2*Alpha + Alpha*Nv + 2*Nsl.
-% - NQSB.a = (Nv x 1) vector - visible site bias.
-% - NQSB.av = (Nsl x 1) vector - visible bias parameters.
-% - NQSB.A = (Nv x 1) vector - visible site square bias.
-% - NQSB.Av = (Nsl x 1) vector - visible square bias parameters.
-% - NQSB.b = (Nh x 1) vector - hidden site bias.
-% - NQSB.bv = (Alpha x 1) vector - hidden bias parameters.
-% - NQSB.B = (Nh x 1) vector- hidden site square bias.
-% - NQSB.Bv = (Alpha x 1) vector - hidden square bias parameters.
-% - NQSB.W = (Nh x Nv) matrix - hidden-visible coupling terms.
-% - NQSB.Wm = (Alpha x Nv) matrix - coupling parameters.
-% - NQSB.Alpha = number of unique coupling sets or "hidden unit density".
-% - NQSB.HDim = dimension of the hidden units.
-% - NQSB.Theta = (Nh x 1) vector - effective angles.
-% - NQSB.NsqVec = (Nv x 1) vector - squared visible occupancies.
+% Format for NQSC Modifier:
+% - NQSC.Nv = number of "visible" units.
+% - NQSC.Nh = number of "hidden" units.
+% - NQSC.Np = number of parameters in the ansatz = 2*Alpha + 2*Alpha*Nv + 2*Nsl.
+% - NQSC.a = (Nv x 1) vector - visible site bias.
+% - NQSC.av = (Nsl x 1) vector - visible bias parameters.
+% - NQSC.A = (Nv x 1) vector - visible site square bias.
+% - NQSC.Av = (Nsl x 1) vector - visible square bias parameters.
+% - NQSC.b = (Nh x 1) vector - hidden site bias.
+% - NQSC.bv = (Alpha x 1) vector - hidden bias parameters.
+% - NQSC.B = (Nh x 1) vector- hidden site square bias.
+% - NQSC.Bv = (Alpha x 1) vector - hidden square bias parameters.
+% - NQSC.w = (Nh x Nv) matrix - hidden-visible coupling terms.
+% - NQSC.wm = (Alpha x Nv) matrix - coupling parameters
+% - NQSC.W = (Nh x Nv) matrix - hidden-square-visible coupling terms.
+% - NQSC.Wm = (Alpha x Nv) matrix - coupling parameters.
+% - NQSC.Alpha = number of unique coupling sets or "hidden unit density".
+% - NQSC.HDim = dimension of the hidden units.
+% - NQSC.Theta = (Nh x 1) vector - effective angles.
+% - NQSC.NsqVec = (Nv x 1) vector - squared visible occupancies.
 % ---------------------------------
-
+    
 % Params requires field AlphaP, b, W, nphs, nmag.
 AP = round(Params.AlphaP); % Require integer AlphaP.
 
@@ -37,15 +39,19 @@ GraphObj = NQSObj.Graph; BondMap = GraphObj.BondMap; Ng = GraphObj.N; SLInds = G
 Ntr = numel(BondMap); % Number of translates - Nh = Ntr*Alpha.
 Nsl = max(SLInds); % Number of sublattices for da.
 
-bv = NQSObj.bv; Bv = NQSObj.Bv; Wm = NQSObj.Wm;
+bv = NQSObj.bv; Bv = NQSObj.Bv; wm = NQSObj.wm; Wm = NQSObj.Wm;
 
 OptInds_aA = OptInds(1:(2*Nsl),:);
 OptInds_b0 = OptInds(2*Nsl+(1:A0),:);
 OptInds_B0 = OptInds(2*Nsl+A0+(1:A0),:);
-OptInds_W0 = OptInds(2*Nsl+2*A0+(1:(A0*Nv)),:);
+OptInds_w0 = OptInds(2*Nsl+2*A0+(1:(A0*Nv)),:);
+OptInds_W0 = OptInds(2*Nsl+2*A0+A0*Nv+(1:(A0*Nv)),:);
 
-if isfield(Params,'B') == 0
+if ~isfield(Params,'B')
     Params.B = Params.b;
+end
+if ~isfield(Params,'w')
+    Params.w = Params.W;
 end
 
 if AP < 0 % Remove hidden units.
@@ -55,35 +61,40 @@ if AP < 0 % Remove hidden units.
         AF = A0 + AP;
         bvF = bv(1:AF); OptInds_bF = OptInds_b0(1:AF,:);  
         BvF = Bv(1:AF); OptInds_BF = OptInds_B0(1:AF,:);        
+        wmF = wm(1:AF,:); OptInds_wF = OptInds_w0((1:(AF*Nv)),:);
         WmF = Wm(1:AF,:); OptInds_WF = OptInds_W0((1:(AF*Nv)),:);
     end
 else
     AF = A0 + AP;
-    bvT = zeros(AP,1); BvT = zeros(AP,1); WmT = zeros(AP,Nv);
+    bvT = zeros(AP,1); BvT = zeros(AP,1); wmT = zeros(AP,Nv); WmT = zeros(AP,Nv);
     for a = 1:AP
         bvT(a) = Params.b * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
         BvT(a) = Params.B * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
         for v = 1:Nv
+            wmT(a,v) = Params.W * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
             WmT(a,v) = Params.W * (1 - Params.nmag + 2 * Params.nmag * rand) * exp(2i * pi * Params.nphs * rand);
         end
     end
+    OptInds_wT_R = (real(wmT.')~=0); OptInds_wT_I = (imag(wmT.')~=0);
     OptInds_WT_R = (real(WmT.')~=0); OptInds_WT_I = (imag(WmT.')~=0);
     bvF = [bv; bvT]; OptInds_bT = [(real(bvT)~=0), (imag(bvT)~=0)];
     BvF = [Bv; BvT]; OptInds_BT = [(real(BvT)~=0), (imag(BvT)~=0)];
+    wmF = [wm; wmT]; OptInds_wT = [OptInds_wT_R(:), OptInds_wT_I(:)];
     WmF = [Wm; WmT]; OptInds_WT = [OptInds_WT_R(:), OptInds_WT_I(:)];
     OptInds_bF = [OptInds_b0; OptInds_bT];
     OptInds_BF = [OptInds_B0; OptInds_BT];
+    OptInds_wF = [OptInds_w0; OptInds_wT];
     OptInds_WF = [OptInds_W0; OptInds_WT];
 end
 
 Alpha = AF; NhF = Alpha*Ntr;
 
 % Sort out optimisation indices
-OptInds = [OptInds_aA; OptInds_bF; OptInds_BF; OptInds_WF];
+OptInds = [OptInds_aA; OptInds_bF; OptInds_BF; OptInds_wF; OptInds_WF];
 
 % Reassign all fields affected by Nh change.
-NQSObj.Np = 2*Nsl + 2*AF + AF*Nv; NQSObj.Nh = NhF; NQSObj.Theta = zeros(NhF,1);
-NQSObj.bv = bvF; NQSObj.Bv = BvF; NQSObj.Wm = WmF; 
+NQSObj.Np = 2*Nsl + 2*AF + 2*AF*Nv; NQSObj.Nh = NhF; NQSObj.Theta = zeros(NhF,1);
+NQSObj.bv = bvF; NQSObj.Bv = BvF; NQSObj.wm = wmF; NQSObj.Wm = WmF; 
 NQSObj.Alpha = Alpha; NQSObj.OptInds = OptInds;
 
 % Constructing shift invariant W matrix.
@@ -96,6 +107,7 @@ for al = 1:Alpha
             if BondMap{b}(1+mod(n-1,Ng)) ~= 0 % Check that bond is valid - W(b,n) left empty otherwise.
                 VInd = BondMap{b}(1+mod(n-1,Ng)) + Ng*(ceil(n/Ng)-1);
                 % Account for enlarged lattices where Nv = Ns x Ng.
+                NQSObj.w(b+(al-1)*Ntr,VInd) = NQSObj.wm(al,n);
                 NQSObj.W(b+(al-1)*Ntr,VInd) = NQSObj.Wm(al,n);
             end
         end
