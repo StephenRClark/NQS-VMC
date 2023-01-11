@@ -56,7 +56,7 @@ NQSObj.av = da;
 NQSObj.Av = dA;
 NQSObj.bv = db;
 NQSObj.Bv = dB;
-NQSObj.wm = wm;
+NQSObj.wm = dw;
 NQSObj.Wm = dW;
 
 cap = NQSObj.ParamCap;

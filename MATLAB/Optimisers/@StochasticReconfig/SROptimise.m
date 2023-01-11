@@ -64,7 +64,7 @@ for p=1:SR.Npass
         % If a chain outputs a ludicrous energy, that contribution is removed.
         EnAvgMed = median(real(EnAvg_s)); EnAvgMean = mean(real(EnAvg_s)); EnAvgMin = min(real(EnAvg_s));
         fprintf('Mean energy: %4f. Median energy: %4f. Minimum energy: %4f \n',EnAvgMean,EnAvgMed,min(real(EnAvg_s)));
-        EnAvg = 0; dLogpAvg = zeros(AnsatzObj.NpTotal,1); EvalAvg = cell(id+1,1); MRate = 0;
+        EnAvg = 0; dLogpAvg = 0*dLogpAvg_s{1}; EvalAvg = cell(id+1,1); MRate = 0;
         for c = 1:Nc
             EnAvg = EnAvg + (1/Nc) * EnAvg_s(c);
             dLogpAvg = dLogpAvg + (1/Nc) * dLogpAvg_s{c};

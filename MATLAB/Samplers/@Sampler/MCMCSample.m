@@ -14,7 +14,7 @@ AnsatzObj = AnsatzObj.PrepPsi(Cfg); % Prepare the ansatz by computing intermedia
 PropMove = AnsatzObj.Hilbert.PropMoveFunc;
 % Initialise averages of sampled quantities:
 EnAvg = 0; MRate = 0; % Average energy and move acceptance rate accumulators.
-dLogpAvg = zeros(AnsatzObj.NpTotal,1); % Average log-derivative vector.
+dLogpAvg = 0*AnsatzObj.LogDeriv(Cfg); % Average log-derivative vector.
 NumEvals = numel(SamplerObj.Operators); % Number of additional quantities for averaging.
 EvalAvg = cell(NumEvals,1); % Create a cell array for storing the additional averaged quantities.
 % Run the evaluation functions once, multiplying the output by zero, to

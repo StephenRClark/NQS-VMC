@@ -3,7 +3,7 @@ addpath("Test functions/Modifiers");
 
 % Testing with 4x4 grid of bosons.
 
-Dim = [4 4]; N = prod(Dim); Bound = [1 1]; LVecs = eye(2);
+Dim = [10 10]; N = prod(Dim); Bound = [1 1]; LVecs = eye(2);
 GraphObj = HypCub(Dim,Bound,LVecs,1);
 
 Nmax = 4; HilbertObj = Bose(N,N,Nmax);
@@ -20,12 +20,13 @@ NQSA_test = NQSA(HilbertObj,GraphObj,ModParams,1);
 NQSB_test = NQSB(HilbertObj,GraphObj,ModParams,1);
 NQSU_test = NQSU(HilbertObj,GraphObj,ModParams,1);
 NQSM_test = NQSM(HilbertObj,GraphObj,ModParams,1);
+NQSC_test = NQSC(HilbertObj,GraphObj,ModParams,1);
 Gutz_test = Gutz(HilbertObj,GraphObj,ModParams,1);
 MBC_test = NNMB(HilbertObj,GraphObj,ModParams,1);
 Jast_test = Jast(HilbertObj,GraphObj,ModParams,1); Jast_test.NormFlag = 0;
 
 ModifierArray = {NQS_test; NQSA_test; NQSB_test; NQSU_test; NQSM_test; ...
-    Gutz_test; MBC_test; Jast_test};
+    NQSC_test; Gutz_test; MBC_test; Jast_test};
 
 Cfg_test = HilbertObj.RandomCfg(); [Diff,CfgD_test] = HilbertObj.PropMove(Cfg_test);
 RatioTester = [HilbertObj.FullCfg(Cfg_test).'; HilbertObj.FullCfg(CfgD_test).'];
