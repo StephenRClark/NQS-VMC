@@ -11,7 +11,7 @@ end
 GraphObj = NQSAObj.Graph; Nsl = max(GraphObj.SLInds);
 
 % Use Hilbert to generate list of visible values.
-Dim = HilbertObj.d; Vals = (0:(Dim-1)).';
+Dim = HilbertObj.d; Vals = (1:(Dim-1)).';
 if strcmp(HilbertObj.Type,'Spin')
     Vals = (Vals - (Dim-1)/2)*(1+mod(Dim-1,2));
 end
@@ -30,7 +30,7 @@ b_u = b_0;
 % ... ,[a, v+1, vd], ...
 w_u = zeros(Alpha,Nv*(Dim-1)); 
 for a = 1:Alpha
-    w_u(a,:) = reshape(Vals*w_0(a),Nv*(Dim-1),1).';
+    w_u(a,:) = reshape(Vals*w_0(a,:),Nv*(Dim-1),1).';
 end
 
 % Reshape these parameters into single column vector.
@@ -42,8 +42,8 @@ ModParams.nmag = 0; ModParams.nphs = 0;
 % Create NQSU object.
 NQSUObj = NQSU(HilbertObj,GraphObj,ModParams,1);
 % Set ParamCap to permit all parameters.
-ParamCap = round(max(abs(Params_U))/5)*5; NQSUObj.ParamCap = ParamCap;
-% Load parameters.
+ParamCap = ceil(max(abs(Params_U))/5)*5; NQSUObj.ParamCap = ParamCap;
+% Load parameters into new NQS.
 NQSUObj = NQSUObj.ParamLoad(Params_U);
 
 end

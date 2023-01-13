@@ -3,7 +3,7 @@ addpath("Test functions/Modifiers");
 
 % Testing with 4x4 grid of bosons.
 
-Dim = [10 10]; N = prod(Dim); Bound = [1 1]; LVecs = eye(2);
+Dim = [4 4]; N = prod(Dim); Bound = [1 1]; LVecs = eye(2);
 GraphObj = HypCub(Dim,Bound,LVecs,1);
 
 Nmax = 4; HilbertObj = Bose(N,N,Nmax);

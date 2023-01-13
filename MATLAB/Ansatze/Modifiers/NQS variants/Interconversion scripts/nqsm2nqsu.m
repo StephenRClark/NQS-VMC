@@ -23,31 +23,32 @@ W_0 = NQSMObj.Wm; X_0 = NQSMObj.Xm; % (Alpha x Nv) / (Alpha x Nv)
 a_0 = reshape(a_0,Nsl,3); a_0(:,2:3) = a_0(:,2:3) - a_0(:,1); a_0(:,1) = -a_0(:,1); 
 a_u = a_0(:,3)*ones(1,(Dim-1)); a_u(:,1:3) = a_0; a_u = reshape(a_u.',Nsl*(Dim-1),1);
 
-% No change to hidden bias.
-b_u = b_0;
+% Theta = b in NQSM describes all v = 1, Theta = b in NQSU describes all v = 0
+% Theta_U(0) = Theta_M(0) = b_m + sum(W) = b_u
+b_u = b_0 + sum(W_0);
 
 % W is holon interaction, X is multiplon, need to interleave.
+% U interactions must offset W_0 from b_u, and only differ for v = 2
 % Target shape: w_u is (Alpha x Nv*(Dim-1)), arranged [a, v, vd], [a, v, vd+1]
 % ... ,[a, v+1, vd], ...
-w_u = zeros(Alpha,Nv*(Dim-1)); w_s = -W_0; w_m = X_0-W_0;
+w_u = zeros(Alpha,Nv*(Dim-1)); w_h = W_0; w_d = X_0;
 for a = 1:Alpha
-    w_temp = zeros((Dim-1),Nv); w_temp(1,:) = w_s(a,:); w_temp(2,:) = w_m(a,:); % Currently ((Dim-1) x Nv)
+    w_temp = -ones((Dim-1),1)*w_h(a,:); w_temp(2,:) = w_temp(2,:) + w_d(a,:); % Currently ((Dim-1) x Nv)
     w_u(a,:) = w_temp(:).';
 end
+
 % Reshape these parameters into single column vector.
 w_u = w_u.'; Params_U = [a_u(:); b_u; w_u(:)];
 
-% Set ModParams for new NQSU. Need to randomly initialise new W terms.
-ModParams.a = 0; ModParams.b = 0; ModParams.W = 0.01; ModParams.Alpha = Alpha;
-ModParams.nmag = 0.01; ModParams.nphs = 0;
+% Set ModParams for new NQSU. New W terms are not initially seeded.
+ModParams.a = 0; ModParams.b = 0; ModParams.W = 0; ModParams.Alpha = Alpha;
+ModParams.nmag = 0; ModParams.nphs = 0;
 
 % Create NQSU object.
-NQSUObj = NQSU(HilbertObj,GraphObj,ModParams,1);
-% Replace zeros in Params_U with parameters generated in NQSU initialisation.
-Params_R = NQSUObj.ParamList; Params_U = Params_U + (Params_R.*(Params_U~=0));
+NQSUObj = NQSU(HilbertObj,GraphObj,ModParams,1); 
 % Set ParamCap to permit all parameters.
-ParamCap = round(max(abs(Params_U))/5)*5; NQSUObj.ParamCap = ParamCap;
-% Load parameters.
+ParamCap = ceil(max(abs(Params_U))/5)*5; NQSUObj.ParamCap = ParamCap;
+% Load parameters into new NQS.
 NQSUObj = NQSUObj.ParamLoad(Params_U);
 
 end

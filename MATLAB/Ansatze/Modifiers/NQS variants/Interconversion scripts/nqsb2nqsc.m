@@ -16,15 +16,15 @@ GraphObj = NQSBObj.Graph;
 % List original parameters of NQSB:
 Alpha = NQSBObj.Alpha; Params_B = NQSBObj.ParamList;
 
-% Initialise new NQSC:
-ModParams.a = 0; ModParams.b = 0; ModParams.W = 0.01; ModParams.Alpha = Alpha;
-ModParams.nmag = 0.01; ModParams.nphs = 0;
+% Set ModParams for new NQSC. New W terms are not initially seeded.
+ModParams.a = 0; ModParams.b = 0; ModParams.W = 0; ModParams.Alpha = Alpha;
+ModParams.nmag = 0; ModParams.nphs = 0;
 
 % Create NQSC object.
 NQSCObj = NQSC(HilbertObj,GraphObj,ModParams,1);
 % Set ParamCap to permit all parameters.
-ParamCap = round(max(abs(Params_B))/5)*5; NQSCObj.ParamCap = ParamCap;
-% Load parameters.
+ParamCap = ceil(max(abs(Params_B))/5)*5; NQSCObj.ParamCap = ParamCap;
+% Load parameters into new NQS.
 Params_C = zeros(NQSCObj.Np,1); Params_C(1:NQSBObj.Np) = Params_B;
 NQSCObj = NQSCObj.ParamLoad(Params_C);
 end

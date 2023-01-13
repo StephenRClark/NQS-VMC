@@ -34,6 +34,7 @@ end
 % Reshape these parameters into single column vector.
 w_m = w_m.'; x_m = x_m.'; Params_M = [a_m; b_m; w_m(:); x_m(:)];
 
+% Set ModParams for new NQSM.
 ModParams.a = 0; ModParams.b = 0; ModParams.W = 0; ModParams.Alpha = Alpha;
 ModParams.nmag = 0; ModParams.nphs = 0;
 
@@ -42,5 +43,6 @@ NQSMObj = NQSM(HilbertObj,GraphObj,ModParams,1);
 % Set ParamCap to permit all parameters.
 ParamCap = round(max(abs(Params_M))/5)*5; NQSMObj.ParamCap = ParamCap;
 % Load parameters.
+NQSMObj.OptInds = [(abs(real(Params_M))>0),(abs(imag(Params_M))>0)]; 
 NQSMObj = NQSMObj.ParamLoad(Params_M);
 end
